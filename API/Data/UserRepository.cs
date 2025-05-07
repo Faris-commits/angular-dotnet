@@ -18,6 +18,17 @@ public class UserRepository(DataContext context, IMapper mapper) : IUserReposito
             .SingleOrDefaultAsync();
     }
 
+    public async Task<MemberDto> GetMemberAsync(string username, bool isCurrentUser)
+    {
+    var query = context.Users
+        .Where(x => x.UserName == username)
+        .ProjectTo<MemberDto>(mapper.ConfigurationProvider)
+        .AsQueryable();
+
+        if(isCurrentUser) query = query.IgnoreQueryFilters();
+        return await query.FirstOrDefaultAsync();
+    }
+
     public async Task<PagedList<MemberDto>> GetMembersAsync(UserParams userParams)
     {
         var query = context.Users.AsQueryable();
@@ -48,6 +59,15 @@ public class UserRepository(DataContext context, IMapper mapper) : IUserReposito
     public async Task<AppUser?> GetUserByIdAsync(int id)
     {
         return await context.Users.FindAsync(id);
+    }
+
+    public async Task<AppUser?> GetUserByPhotoId(int photoId)
+    {
+        return await context.Users
+        .Include(x => x.Photos)
+        .IgnoreQueryFilters()
+        .Where(x => x.Photos.Any(p => p.Id == photoId))
+        .FirstOrDefaultAsync();
     }
 
     public async Task<AppUser?> GetUserByUsernameAsync(string username)
