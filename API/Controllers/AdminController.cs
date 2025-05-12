@@ -1,112 +1,97 @@
-﻿using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using API.Controllers;
-using API.Data;
+﻿using API.Controllers;
 using API.Entities;
 using API.Interfaces;
-using API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace API;
 
-public class AdminController(UserManager<AppUser> userManager, IUnitOfWork unitOfWork,IPhotoService photoService) : BaseApiController
+public class AdminController(UserManager<AppUser> userManager, IUnitOfWork unitOfWork,IPhotoService photoService, IAdminService adminService) : BaseApiController
 {
     [Authorize(Policy = "RequireAdminRole")]
     [HttpGet("users-with-roles")]
     public async Task<ActionResult> GetUsersWithRoles()
     {
-        var users = await userManager.Users
-            .OrderBy(x => x.UserName)
-            .Select(x => new 
-            {
-                x.Id,
-                Username = x.UserName,
-                Roles = x.UserRoles.Select(r => r.Role.Name).ToList()
-            }).ToListAsync();
+          try
+    {
+        var users = await adminService.GetUsersWithRolesAsync();
 
         return Ok(users);
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, $"Internal server error: {ex.Message}");
+    }
     }
 
     [Authorize(Policy = "RequireAdminRole")]
     [HttpPost("edit-roles/{username}")]
     public async Task<ActionResult> EditRoles(string username, string roles)
     {
-        if (string.IsNullOrEmpty(roles)) return BadRequest("you must select at least one role");
+         try
+    {
+        var (success, errorMessage, updatedRoles) = await adminService.EditRolesAsync(username, roles);
 
-        var selectedRoles = roles.Split(",").ToArray();
+        if (!success) return BadRequest(errorMessage);
 
-        var user = await userManager.FindByNameAsync(username);
-
-        if (user == null) return BadRequest("User not found");
-
-        var userRoles = await userManager.GetRolesAsync(user);
-
-        var result = await userManager.AddToRolesAsync(user, selectedRoles.Except(userRoles));
-
-        if (!result.Succeeded) return BadRequest("Failed to add to roles");
-
-        result = await userManager.RemoveFromRolesAsync(user, userRoles.Except(selectedRoles));
-
-        if (!result.Succeeded) return BadRequest("Failed to remove from roles");
-        
-        return Ok(await userManager.GetRolesAsync(user));
+        return Ok(updatedRoles);
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, $"Internal server error: {ex.Message}");
+    }
     }
 
     [Authorize(Policy = "ModeratePhotoRole")]
     [HttpGet("photos-to-moderate")]
     public async Task<ActionResult> GetPhotosForModeration()
     {
-        var photos = await unitOfWork.PhotoRepository.GetUnapprovedPhotos();
+         try
+    {
+        var photos = await adminService.GetPhotosForModerationAsync();
 
         return Ok(photos);
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, $"Internal server error: {ex.Message}");
+    }
     }
 
     [Authorize(Policy = "ModeratePhotoRole")]
     [HttpPost("approve-photo/{photoId}")]
     public async Task<ActionResult> ApprovePhoto(int photoId)
     {
-        var photo = await unitOfWork.PhotoRepository.GetPhotoById(photoId);
-
-        if (photo == null) return NotFound("Photo not found");
-
-        photo.IsApproved = true;
-
-        var user = await unitOfWork.UserRepository.GetUserByPhotoId(photoId);
-
-        if(user == null) return BadRequest("User not found");
-
-        if(!user.Photos.Any(x => x.IsMain)) photo.IsMain = true;
-
-        if (await unitOfWork.Complete()) return NoContent();
-
-        return Ok();
+        try
+        {
+            var success = await adminService.ApprovePhotoAsync(photoId);
+            if (!success) return BadRequest("Failed to approve");
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            
+         return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
     }
 
     [Authorize(Policy = "ModeratePhotoRole")]
     [HttpPost("reject-photo/{photoId}")]
     public async Task<ActionResult> RejectPhoto(int photoId)
     {
-        var photo = await unitOfWork.PhotoRepository.GetPhotoById(photoId);
+        try
+    {
+        var success = await adminService.RejectPhotoAsync(photoId);
 
-        if (photo == null) return BadRequest("Photo not found");
+        if (!success) return BadRequest("Failed to reject photo");
 
-        if(photo.PublicId != null)
-        {
-            var result = await photoService.DeletePhotoAsync(photo.PublicId);
-
-            if (result.Result == "ok") {
-                unitOfWork.PhotoRepository.RemovePhoto(photo);
-            }
-        }
-        else
-        {
-            unitOfWork.PhotoRepository.RemovePhoto(photo);
-        }
-        await unitOfWork.Complete();
         return Ok();
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, $"Internal server error: {ex.Message}");
+    }
     }
     
 }

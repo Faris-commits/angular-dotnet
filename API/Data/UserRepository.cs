@@ -10,6 +10,11 @@ namespace API;
 
 public class UserRepository(DataContext context, IMapper mapper) : IUserRepository
 {
+    public Task<bool> AddToRolesAsync(AppUser user, IEnumerable<string> enumerable)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<MemberDto?> GetMemberAsync(string username)
     {
         return await context.Users
@@ -77,11 +82,26 @@ public class UserRepository(DataContext context, IMapper mapper) : IUserReposito
             .SingleOrDefaultAsync(x => x.UserName == username);
     }
 
+    public Task<IEnumerable<string>> GetUserRolesAsync(AppUser user)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<IEnumerable<AppUser>> GetUsersAsync()
     {
         return await context.Users
             .Include(x => x.Photos)
             .ToListAsync();
+    }
+
+    public Task<IEnumerable<object>> GetUsersWithRolesAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> RemoveFromRolesAsync(AppUser user, IEnumerable<string> enumerable)
+    {
+        throw new NotImplementedException();
     }
 
     public void Update(AppUser user)

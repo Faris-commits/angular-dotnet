@@ -16,4 +16,8 @@ public interface IUserRepository
     Task<MemberDto> GetMemberAsync(string username, bool isCurrentUser);
 
     Task<AppUser?> GetUserByPhotoId(int photoId);
+    Task<IEnumerable<object>> GetUsersWithRolesAsync();
+    Task<IEnumerable<string>> GetUserRolesAsync(AppUser user);
+    Task<bool> AddToRolesAsync(AppUser user, IEnumerable<string> enumerable);
+    Task<bool> RemoveFromRolesAsync(AppUser user, IEnumerable<string> enumerable);
 }
