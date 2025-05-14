@@ -1,7 +1,11 @@
 .nv-file-over {
-    border: dotted 3px red
+  border: dotted 3px red;
 }
 
-.not-approved{
-    opacity: 0.2;
+.not-approved {
+  opacity: 0.2;
+}
+
+.upload-div{
+  margin-bottom: 40px;
 }

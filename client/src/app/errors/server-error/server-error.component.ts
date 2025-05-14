@@ -6,7 +6,7 @@ import { Router } from '@angular/router';
   standalone: true,
   imports: [],
   templateUrl: './server-error.component.html',
-  styleUrl: './server-error.component.css'
+  styleUrl: './server-error.component.css',
 })
 export class ServerErrorComponent {
   error: any;
@@ -15,5 +15,4 @@ export class ServerErrorComponent {
     const navigation = this.router.getCurrentNavigation();
     this.error = navigation?.extras?.state?.['error'];
   }
-
 }

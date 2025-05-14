@@ -7,35 +7,39 @@ import { Photo } from '../../_models/photo';
   standalone: true,
   imports: [],
   templateUrl: './photo-management.component.html',
-  styleUrl: './photo-management.component.css'
+  styleUrl: './photo-management.component.css',
 })
 export class PhotoManagementComponent implements OnInit {
-private adminService = inject(AdminService)
-photos: Photo[] = [];
+  private adminService = inject(AdminService);
+  photos: Photo[] = [];
 
+  ngOnInit(): void {
+    this.getPhotosForApproval();
+  }
 
+  getPhotosForApproval() {
+    this.adminService.getPhotosForApproval().subscribe({
+      next: photos => (this.photos = photos),
+    });
+  }
 
+  approvePhoto(photoId: number) {
+    this.adminService.approvePhoto(photoId).subscribe({
+      next: () =>
+        this.photos.splice(
+          this.photos.findIndex(x => x.id === photoId),
+          1
+        ),
+    });
+  }
 
-ngOnInit(): void {
-  this.getPhotosForApproval();
-}
-
-getPhotosForApproval(){
-  this.adminService.getPhotosForApproval().subscribe({
-    next: photos => this.photos = photos
-  })
-}
-
-approvePhoto(photoId: number){
-  this.adminService.approvePhoto(photoId).subscribe({
-    next: () => this.photos.splice(this.photos.findIndex(x => x.id === photoId), 1)
-  })
-}
-
-rejectPhoto(photoId: number){
-  this.adminService.rejectPhoto(photoId).subscribe({
-    next: () => this.photos.splice(this.photos.findIndex(x => x.id === photoId), 1)
-  })
-}
-
+  rejectPhoto(photoId: number) {
+    this.adminService.rejectPhoto(photoId).subscribe({
+      next: () =>
+        this.photos.splice(
+          this.photos.findIndex(x => x.id === photoId),
+          1
+        ),
+    });
+  }
 }

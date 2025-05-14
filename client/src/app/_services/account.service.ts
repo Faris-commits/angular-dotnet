@@ -7,7 +7,7 @@ import { LikesService } from './likes.service';
 import { PresenceService } from './presence.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AccountService {
   private http = inject(HttpClient);
@@ -18,10 +18,10 @@ export class AccountService {
   roles = computed(() => {
     const user = this.currentUser();
     if (user && user.token) {
-      return JSON.parse(atob(user.token.split('.')[1])).role
+      return JSON.parse(atob(user.token.split('.')[1])).role;
     }
     return null;
-  })
+  });
 
   login(model: any) {
     return this.http.post<User>(this.baseUrl + 'account/login', model).pipe(
@@ -30,7 +30,7 @@ export class AccountService {
           this.setCurrentUser(user);
         }
       })
-    )
+    );
   }
 
   register(model: any) {
@@ -41,14 +41,14 @@ export class AccountService {
         }
         return user;
       })
-    )
+    );
   }
 
   setCurrentUser(user: User) {
     localStorage.setItem('user', JSON.stringify(user));
     this.currentUser.set(user);
     this.likeService.getLikeIds();
-    this.presenceService.createHubConnection(user)
+    this.presenceService.createHubConnection(user);
   }
 
   logout() {
