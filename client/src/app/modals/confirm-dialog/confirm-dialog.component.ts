@@ -6,7 +6,7 @@ import { BsModalRef } from 'ngx-bootstrap/modal';
   standalone: true,
   imports: [],
   templateUrl: './confirm-dialog.component.html',
-  styleUrl: './confirm-dialog.component.css'
+  styleUrl: './confirm-dialog.component.css',
 })
 export class ConfirmDialogComponent {
   bsModalRef = inject(BsModalRef);

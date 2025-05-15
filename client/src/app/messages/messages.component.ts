@@ -10,12 +10,18 @@ import { PaginationModule } from 'ngx-bootstrap/pagination';
 @Component({
   selector: 'app-messages',
   standalone: true,
-  imports: [ButtonsModule, FormsModule, TimeagoModule, RouterLink, PaginationModule],
+  imports: [
+    ButtonsModule,
+    FormsModule,
+    TimeagoModule,
+    RouterLink,
+    PaginationModule,
+  ],
   templateUrl: './messages.component.html',
-  styleUrl: './messages.component.css'
+  styleUrl: './messages.component.css',
 })
 export class MessagesComponent implements OnInit {
-  messageService = inject(MessageService);
+ private messageService = inject(MessageService);
   container = 'Inbox';
   pageNumber = 1;
   pageSize = 5;
@@ -25,8 +31,16 @@ export class MessagesComponent implements OnInit {
     this.loadMessages();
   }
 
+    getPaginatedResult() {
+    return this.messageService.paginatedResult();
+  }
+
   loadMessages() {
-    this.messageService.getMessages(this.pageNumber, this.pageSize, this.container);
+    this.messageService.getMessages(
+      this.pageNumber,
+      this.pageSize,
+      this.container
+    );
   }
 
   deleteMessage(id: number) {
@@ -34,17 +48,21 @@ export class MessagesComponent implements OnInit {
       next: _ => {
         this.messageService.paginatedResult.update(prev => {
           if (prev && prev.items) {
-            prev.items.splice(prev.items.findIndex(m => m.id === id), 1);
+            prev.items.splice(
+              prev.items.findIndex(m => m.id === id),
+              1
+            );
             return prev;
           }
           return prev;
-        })
-      }
-    })
+        });
+      },
+    });
   }
 
   getRoute(message: Message) {
-    if (this.container === 'Outbox') return `/members/${message.recipientUsername}`;
+    if (this.container === 'Outbox')
+      return `/members/${message.recipientUsername}`;
     else return `/members/${message.senderUsername}`;
   }
 

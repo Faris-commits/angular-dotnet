@@ -6,7 +6,7 @@ import { BsModalRef } from 'ngx-bootstrap/modal';
   standalone: true,
   imports: [],
   templateUrl: './roles-modal.component.html',
-  styleUrl: './roles-modal.component.css'
+  styleUrl: './roles-modal.component.css',
 })
 export class RolesModalComponent {
   bsModalRef = inject(BsModalRef);
@@ -18,7 +18,7 @@ export class RolesModalComponent {
 
   updateChecked(checkedValue: string) {
     if (this.selectedRoles.includes(checkedValue)) {
-      this.selectedRoles = this.selectedRoles.filter(r => r !== checkedValue)
+      this.selectedRoles = this.selectedRoles.filter(r => r !== checkedValue);
     } else {
       this.selectedRoles.push(checkedValue);
     }

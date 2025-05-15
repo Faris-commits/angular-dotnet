@@ -1,6 +1,4 @@
-﻿using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
+﻿using System.Text.Json;
 using API.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -51,5 +49,12 @@ public class Seed
 
         await userManager.CreateAsync(admin, "Pa$$w0rd");
         await userManager.AddToRolesAsync(admin, ["Admin", "Moderator"]);
+
+        foreach(var user in users){
+    user.Photos.First().IsApproved = true;
+    user.UserName = user.UserName.ToLower();
+    await userManager.CreateAsync(user, "Pa$$w0rd");
+    await userManager.AddToRoleAsync(user, "Member");
+}
     }
 }
