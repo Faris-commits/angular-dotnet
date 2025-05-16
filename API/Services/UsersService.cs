@@ -8,27 +8,27 @@ namespace API.Services;
 
 public class UsersService : IUsersService
 {
-private readonly IUnitOfWork _unitOfWork;
-private readonly IMapper _mapper;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
 
-private readonly IPhotoService _photoService;
+    private readonly IPhotoService _photoService;
 
-public UsersService(IUnitOfWork unitOfWork, IMapper mapper, IPhotoService photoService)
-{
-    _unitOfWork = unitOfWork;
-    _mapper = mapper;
-    _photoService = photoService;
-}
+    public UsersService(IUnitOfWork unitOfWork, IMapper mapper, IPhotoService photoService)
+    {
+        _unitOfWork = unitOfWork;
+        _mapper = mapper;
+        _photoService = photoService;
+    }
 
-    
+
     public async Task<PhotoDto> AddPhotoAsync(string username, IFormFile file)
-    { 
+    {
         var user = await _unitOfWork.UserRepository.GetUserByUsernameAsync(username);
 
         if (user == null) return null;
 
         var result = await _photoService.AddPhotoAsync(file);
-        
+
         if (result.Error != null) throw new Exception(result.Error.Message);
 
         var photo = new Photo
@@ -37,19 +37,19 @@ public UsersService(IUnitOfWork unitOfWork, IMapper mapper, IPhotoService photoS
             PublicId = result.PublicId
         };
 
-      
+
 
         user.Photos.Add(photo);
 
-        if (await _unitOfWork.Complete()) 
-            return  _mapper.Map<PhotoDto>(photo);
+        if (await _unitOfWork.Complete())
+            return _mapper.Map<PhotoDto>(photo);
 
-        throw new Exception ("Problem adding photo");
+        throw new Exception("Problem adding photo");
     }
 
     public async Task<bool> DeletePhotoAsync(string username, int photoId)
     {
-         var user = await _unitOfWork.UserRepository.GetUserByUsernameAsync(username);
+        var user = await _unitOfWork.UserRepository.GetUserByUsernameAsync(username);
 
         if (user == null) return false;
 
@@ -60,7 +60,7 @@ public UsersService(IUnitOfWork unitOfWork, IMapper mapper, IPhotoService photoS
         if (photo.PublicId != null)
         {
             var result = await _photoService.DeletePhotoAsync(photo.PublicId);
-            if (result.Error != null) throw new Exception (result.Error.Message);
+            if (result.Error != null) throw new Exception(result.Error.Message);
         }
 
         user.Photos.Remove(photo);
@@ -70,11 +70,11 @@ public UsersService(IUnitOfWork unitOfWork, IMapper mapper, IPhotoService photoS
 
     public async Task<MemberDto> GetUserAsync(string username, string currentUsername)
     {
-        
+
         return await _unitOfWork.UserRepository.GetMemberAsync(username, isCurrentUser: currentUsername == username);
     }
 
-    public async  Task<PagedList<MemberDto>> GetUsersAsync(UserParams userParams, string currentUsername)
+    public async Task<PagedList<MemberDto>> GetUsersAsync(UserParams userParams, string currentUsername)
     {
         userParams.CurrentUsername = currentUsername;
         return await _unitOfWork.UserRepository.GetMembersAsync(userParams);
@@ -101,7 +101,7 @@ public UsersService(IUnitOfWork unitOfWork, IMapper mapper, IPhotoService photoS
 
     public async Task<bool> UpdateUserAsync(string currentUsername, MemberUpdateDto dto)
     {
-         var user = await _unitOfWork.UserRepository.GetUserByUsernameAsync(currentUsername);
+        var user = await _unitOfWork.UserRepository.GetUserByUsernameAsync(currentUsername);
 
         if (user == null) return false;
 

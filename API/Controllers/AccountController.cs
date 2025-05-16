@@ -3,30 +3,31 @@ using API.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
+
 [ApiController]
 [Route("api/[controller]")]
 public class AccountController : ControllerBase
 {
 
-private readonly IAccountService _accountService;
+    private readonly IAccountService _accountService;
 
-public  AccountController(IAccountService accountService)
-{
-    _accountService = accountService;
-}
+    public AccountController(IAccountService accountService)
+    {
+        _accountService = accountService;
+    }
 
     [HttpPost("register")] // account/register
     public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
     {
         try
         {
-           var userDto = await _accountService.RegisterAsync(registerDto);
-           if (userDto == null) return BadRequest("User already exists");
-           return userDto;
+            var userDto = await _accountService.RegisterAsync(registerDto);
+            if (userDto == null) return BadRequest("User already exists");
+            return userDto;
         }
         catch (Exception ex)
         {
-            
+
             return StatusCode(500, $"Error registering user: {ex.Message}");
         }
     }
@@ -34,18 +35,18 @@ public  AccountController(IAccountService accountService)
     [HttpPost("login")]
     public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
     {
-       try
-       {
-              var userDto = await _accountService.LoginAsync(loginDto);
-              if (userDto == null) return Unauthorized("Invalid username or password");
-              return userDto;
-       }
-       catch (Exception ex)
-       {
-        
-       return StatusCode(500, $"Error logging in user: {ex.Message}");
+        try
+        {
+            var userDto = await _accountService.LoginAsync(loginDto);
+            if (userDto == null) return Unauthorized("Invalid username or password");
+            return userDto;
+        }
+        catch (Exception ex)
+        {
 
-       }
+            return StatusCode(500, $"Error logging in user: {ex.Message}");
+
+        }
     }
 
     private async Task<bool> UserExists(string username)

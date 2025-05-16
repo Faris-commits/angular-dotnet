@@ -25,12 +25,12 @@ public class UserRepository(DataContext context, IMapper mapper) : IUserReposito
 
     public async Task<MemberDto> GetMemberAsync(string username, bool isCurrentUser)
     {
-    var query = context.Users
-        .Where(x => x.UserName == username)
-        .ProjectTo<MemberDto>(mapper.ConfigurationProvider)
-        .AsQueryable();
+        var query = context.Users
+            .Where(x => x.UserName == username)
+            .ProjectTo<MemberDto>(mapper.ConfigurationProvider)
+            .AsQueryable();
 
-        if(isCurrentUser) query = query.IgnoreQueryFilters();
+        if (isCurrentUser) query = query.IgnoreQueryFilters();
         return await query.FirstOrDefaultAsync();
     }
 
@@ -40,12 +40,12 @@ public class UserRepository(DataContext context, IMapper mapper) : IUserReposito
 
         query = query.Where(x => x.UserName != userParams.CurrentUsername);
 
-        if (userParams.Gender != null) 
+        if (userParams.Gender != null)
         {
             query = query.Where(x => x.Gender == userParams.Gender);
         }
 
-        var minDob = DateOnly.FromDateTime(DateTime.Today.AddYears(-userParams.MaxAge-1));
+        var minDob = DateOnly.FromDateTime(DateTime.Today.AddYears(-userParams.MaxAge - 1));
         var maxDob = DateOnly.FromDateTime(DateTime.Today.AddYears(-userParams.MinAge));
 
         query = query.Where(x => x.DateOfBirth >= minDob && x.DateOfBirth <= maxDob);
@@ -56,9 +56,9 @@ public class UserRepository(DataContext context, IMapper mapper) : IUserReposito
             _ => query.OrderByDescending(x => x.LastActive)
         };
 
-        return await PagedList<MemberDto>.CreateAsync(query.ProjectTo<MemberDto>(mapper.ConfigurationProvider), 
+        return await PagedList<MemberDto>.CreateAsync(query.ProjectTo<MemberDto>(mapper.ConfigurationProvider),
             userParams.PageNumber, userParams.PageSize);
-            
+
     }
 
     public async Task<AppUser?> GetUserByIdAsync(int id)

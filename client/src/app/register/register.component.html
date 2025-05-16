@@ -22,40 +22,31 @@
     </label>
   </div>
 
-  <app-text-input
-    formControlName = "username"
-    [label]="'Username'">
+  <app-text-input formControlName="username" [label]="'Username'">
   </app-text-input>
 
-  <app-text-input
-    formControlName = "knownAs"
-    [label]="'Known as'">
+  <app-text-input formControlName="knownAs" [label]="'Known as'">
   </app-text-input>
 
   <app-date-picker
-    formControlName = "dateOfBirth"
+    formControlName="dateOfBirth"
     [label]="'Date of birth'"
     [maxDate]="maxDate">
   </app-date-picker>
 
-  <app-text-input
-    formControlName = "City"
-    [label]="'City'">
+  <app-text-input formControlName="City" [label]="'City'"> </app-text-input>
+
+  <app-text-input formControlName="Country" [label]="'Country'">
   </app-text-input>
 
   <app-text-input
-    formControlName = "Country"
-    [label]="'Country'">
-  </app-text-input>
-
-  <app-text-input
-    formControlName = "password"
+    formControlName="password"
     [label]="'Password'"
     [type]="'password'">
   </app-text-input>
 
   <app-text-input
-    formControlName = "confirmPassword"
+    formControlName="confirmPassword"
     [label]="'Confirm password'"
     [type]="'password'">
   </app-text-input>

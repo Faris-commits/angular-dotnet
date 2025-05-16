@@ -7,56 +7,56 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace API;
 
-public class AdminController(UserManager<AppUser> userManager, IUnitOfWork unitOfWork,IPhotoService photoService, IAdminService adminService) : BaseApiController
+public class AdminController(UserManager<AppUser> userManager, IUnitOfWork unitOfWork, IPhotoService photoService, IAdminService adminService) : BaseApiController
 {
     [Authorize(Policy = "RequireAdminRole")]
     [HttpGet("users-with-roles")]
     public async Task<ActionResult> GetUsersWithRoles()
     {
-          try
-    {
-        var users = await adminService.GetUsersWithRolesAsync();
+        try
+        {
+            var users = await adminService.GetUsersWithRolesAsync();
 
-        return Ok(users);
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(500, $"Internal server error: {ex.Message}");
-    }
+            return Ok(users);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
     }
 
     [Authorize(Policy = "RequireAdminRole")]
     [HttpPost("edit-roles/{username}")]
     public async Task<ActionResult> EditRoles(string username, string roles)
     {
-         try
-    {
-        var (success, errorMessage, updatedRoles) = await adminService.EditRolesAsync(username, roles);
+        try
+        {
+            var (success, errorMessage, updatedRoles) = await adminService.EditRolesAsync(username, roles);
 
-        if (!success) return BadRequest(errorMessage);
+            if (!success) return BadRequest(errorMessage);
 
-        return Ok(updatedRoles);
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(500, $"Internal server error: {ex.Message}");
-    }
+            return Ok(updatedRoles);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
     }
 
     [Authorize(Policy = "ModeratePhotoRole")]
     [HttpGet("photos-to-moderate")]
     public async Task<ActionResult> GetPhotosForModeration()
     {
-         try
-    {
-        var photos = await adminService.GetPhotosForModerationAsync();
+        try
+        {
+            var photos = await adminService.GetPhotosForModerationAsync();
 
-        return Ok(photos);
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(500, $"Internal server error: {ex.Message}");
-    }
+            return Ok(photos);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
     }
 
     [Authorize(Policy = "ModeratePhotoRole")]
@@ -71,8 +71,8 @@ public class AdminController(UserManager<AppUser> userManager, IUnitOfWork unitO
         }
         catch (Exception ex)
         {
-            
-         return StatusCode(500, $"Internal server error: {ex.Message}");
+
+            return StatusCode(500, $"Internal server error: {ex.Message}");
         }
     }
 
@@ -81,17 +81,17 @@ public class AdminController(UserManager<AppUser> userManager, IUnitOfWork unitO
     public async Task<ActionResult> RejectPhoto(int photoId)
     {
         try
-    {
-        var success = await adminService.RejectPhotoAsync(photoId);
+        {
+            var success = await adminService.RejectPhotoAsync(photoId);
 
-        if (!success) return BadRequest("Failed to reject photo");
+            if (!success) return BadRequest("Failed to reject photo");
 
-        return Ok();
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
     }
-    catch (Exception ex)
-    {
-        return StatusCode(500, $"Internal server error: {ex.Message}");
-    }
-    }
-    
+
 }

@@ -9,14 +9,14 @@ public class MessageService(IUnitOfWork unitOfWork, IMapper mapper) : IMessageSe
 {
     public async Task<MessageDto> CreateMessageAsync(string senderUsername, CreateMessageDto createMessageDto)
     {
-         
+
         if (senderUsername == createMessageDto.RecipientUsername.ToLower())
             return null;
-        
+
         var sender = await unitOfWork.UserRepository.GetUserByUsernameAsync(senderUsername);
         var recipient = await unitOfWork.UserRepository.GetUserByUsernameAsync(createMessageDto.RecipientUsername);
 
-        if (sender == null || recipient == null || sender.UserName == null || recipient.UserName == null) 
+        if (sender == null || recipient == null || sender.UserName == null || recipient.UserName == null)
             return null;
 
         var message = new Message
@@ -39,25 +39,25 @@ public class MessageService(IUnitOfWork unitOfWork, IMapper mapper) : IMessageSe
     {
         var message = await unitOfWork.MessageRepository.GetMessage(messageId);
 
-     
+
 
         if (message == null) return false;
 
-        if (message.SenderUsername != username && message.RecipientUsername != username) 
+        if (message.SenderUsername != username && message.RecipientUsername != username)
             return false;
 
         if (message.SenderUsername == username) message.SenderDeleted = true;
         if (message.RecipientUsername == username) message.RecipientDeleted = true;
 
         if (message.SenderDeleted && message.RecipientDeleted)
-        unitOfWork.MessageRepository.DeleteMessage(message);
+            unitOfWork.MessageRepository.DeleteMessage(message);
 
-      return await unitOfWork.Complete();
+        return await unitOfWork.Complete();
     }
 
     public async Task<PagedList<MessageDto>> GetMessagesForUserAsync(MessageParams messageParams)
     {
-         return await unitOfWork.MessageRepository.GetMessagesForUser(messageParams);
+        return await unitOfWork.MessageRepository.GetMessagesForUser(messageParams);
     }
 
     public async Task<IEnumerable<MessageDto>> GetMessageThreadAsync(string currentUsername, string recipientUsername)

@@ -13,37 +13,37 @@ public class MessagesController(IMessageService messageService) : BaseApiControl
     [HttpPost]
     public async Task<ActionResult<MessageDto>> CreateMessage(CreateMessageDto createMessageDto)
     {
-       try
-       {
-         var senderUsername = User.GetUsername();
-         var result = await messageService.CreateMessageAsync(senderUsername, createMessageDto);
-         if (result == null) return BadRequest("Could not send message");
-         return Ok(result);
-       }
-       catch (Exception)
-       {
-        
-        return StatusCode(500, "Server error while sending message");
-       }
+        try
+        {
+            var senderUsername = User.GetUsername();
+            var result = await messageService.CreateMessageAsync(senderUsername, createMessageDto);
+            if (result == null) return BadRequest("Could not send message");
+            return Ok(result);
+        }
+        catch (Exception)
+        {
+
+            return StatusCode(500, "Server error while sending message");
+        }
     }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<MessageDto>>> GetMessagesForUser(
-        [FromQuery]MessageParams messageParams)
+        [FromQuery] MessageParams messageParams)
     {
         try
         {
             messageParams.Username = User.GetUsername();
-    
+
             var messages = await messageService.GetMessagesForUserAsync(messageParams);
             Response.AddPaginationHeader(messages);
             return Ok(messages);
-        
+
         }
         catch (Exception)
         {
-            
-           return StatusCode(500, "Server error while getting messages");
+
+            return StatusCode(500, "Server error while getting messages");
         }
     }
 
@@ -58,7 +58,7 @@ public class MessagesController(IMessageService messageService) : BaseApiControl
         }
         catch (Exception)
         {
-            
+
             return StatusCode(500, "Server error while getting message thread");
         }
     }
@@ -68,14 +68,14 @@ public class MessagesController(IMessageService messageService) : BaseApiControl
     {
         try
         {
-          var  username = User.GetUsername();
+            var username = User.GetUsername();
             var success = await messageService.DeleteMessageAsync(username, id);
             if (!success) return BadRequest("Problem deleting message");
             return Ok();
         }
         catch (Exception)
         {
-            
+
             return StatusCode(500, "Server error while deleting message");
         }
     }
