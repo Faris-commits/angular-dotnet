@@ -9,20 +9,20 @@
   <div class="container mt-3">
     <form #form="ngForm" class="d-flex mb-3" (ngSubmit)="loadMembers()">
       <div class="d-flex mx-2">
-        <label class="col-form-label">Age from: </label>
-        <input
+        <app-input-wrapper
           type="number"
-          class="input-width form-control ms-1"
+          label="Age from:"
           name="minAge"
-          [(ngModel)]="getUserParams().minAge" />
+          [(ngModel)]="getUserParams().minAge">
+        </app-input-wrapper>
       </div>
       <div class="d-flex mx-2">
-        <label class="col-form-label">Age to: </label>
-        <input
+        <app-input-wrapper
           type="number"
-          class="input-width ms-1 form-control"
+          label="Age to"
           name="maxAge"
-          [(ngModel)]="getUserParams().maxAge" />
+          [(ngModel)]="getUserParams().maxAge">
+        </app-input-wrapper>
       </div>
 
       <div class="d-flex mx-2">
@@ -40,13 +40,14 @@
         </select>
       </div>
 
-      <button class="btn btn-dark ms-1" type="submit">Apply filters</button>
-      <button
-        (click)="resetFilters()"
-        class="btn btn-danger ms-1"
-        type="button">
-        Reset filters
-      </button>
+      <app-button-wrapper type="submit" text="Apply Filters" name="applyBtn">
+      </app-button-wrapper>
+
+      <app-button-wrapper
+        classStyle="btn btn-info ms-1"
+        name="resetBtn"
+        text="Reset Filters"
+        (clicked)="resetFilters()"></app-button-wrapper>
 
       <div class="col">
         <div class="btn-group float-end">
@@ -85,9 +86,7 @@
     <pagination
       [boundaryLinks]="true"
       [totalItems]="(getPaginatedResult()?.pagination)!.totalItems"
-      [itemsPerPage]="
-        (getPaginatedResult()?.pagination)!.itemsPerPage
-      "
+      [itemsPerPage]="(getPaginatedResult()?.pagination)!.itemsPerPage"
       (pageChanged)="pageChanged($event)"
       [(ngModel)]="(getPaginatedResult()?.pagination)!.currentPage"
       [maxSize]="10"
