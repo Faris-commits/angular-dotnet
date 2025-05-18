@@ -7,90 +7,152 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace API;
 
-public class AdminController(UserManager<AppUser> userManager, IUnitOfWork unitOfWork, IPhotoService photoService, IAdminService adminService) : BaseApiController
+public class AdminController(
+    UserManager<AppUser> userManager,
+    IUnitOfWork unitOfWork,
+    IPhotoService photoService,
+    IAdminService adminService,
+    ILogger<AdminController> _logger
+    ) : BaseApiController
 {
+
+    /// <summary>
+    /// GET /api/admin/users-with-roles
+    /// </summary>
+    /// <returns></returns>
     [Authorize(Policy = "RequireAdminRole")]
     [HttpGet("users-with-roles")]
+    [ProducesResponseType(typeof(ActionResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesErrorResponseType(typeof(void))]
     public async Task<ActionResult> GetUsersWithRoles()
     {
         try
         {
+            _logger.LogDebug($"AdminController - {nameof(GetUsersWithRoles)} invoked");
             var users = await adminService.GetUsersWithRolesAsync();
 
             return Ok(users);
         }
         catch (Exception ex)
         {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
+            _logger.LogError(ex, "Exception in AdminController.GetUserWithRoles");
+            throw;
         }
     }
-
+    /// <summary>
+    /// POST /api/admin/edit-roles/{username}
+    /// </summary>
+    /// <param name="username"></param>
+    /// <param name="roles"></param>
+    /// <returns></returns>
     [Authorize(Policy = "RequireAdminRole")]
     [HttpPost("edit-roles/{username}")]
+    [ProducesResponseType(typeof(ActionResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesErrorResponseType(typeof(void))]
     public async Task<ActionResult> EditRoles(string username, string roles)
     {
         try
         {
-            var (success, errorMessage, updatedRoles) = await adminService.EditRolesAsync(username, roles);
-
-            if (!success) return BadRequest(errorMessage);
-
+            _logger.LogDebug($"AdminController - {nameof(EditRoles)} invoked (username: {username}, roles: {roles})");
+            var updatedRoles = await adminService.EditRolesAsync(username, roles);
             return Ok(updatedRoles);
         }
         catch (Exception ex)
         {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
+            _logger.LogError(ex, "Exception in AdminController.EditRoles");
+            throw;
         }
     }
-
+    /// <summary>
+    /// GET /api/admin/photos-to-moderate
+    /// </summary>
+    /// <returns></returns>
     [Authorize(Policy = "ModeratePhotoRole")]
     [HttpGet("photos-to-moderate")]
+    [ProducesResponseType(typeof(ActionResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesErrorResponseType(typeof(void))]
     public async Task<ActionResult> GetPhotosForModeration()
     {
         try
         {
+            _logger.LogDebug($"AdminController - {nameof(GetPhotosForModeration)} invoked");
             var photos = await adminService.GetPhotosForModerationAsync();
 
             return Ok(photos);
         }
         catch (Exception ex)
         {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
+            _logger.LogError(ex, "Exception in AdminController.GetPhotosForModeration");
+            throw;
         }
     }
-
+    /// <summary>
+    /// POST /api/approve-photo/{photoId}
+    /// </summary>
+    /// <param name="photoId"></param>
+    /// <returns></returns>
     [Authorize(Policy = "ModeratePhotoRole")]
     [HttpPost("approve-photo/{photoId}")]
+    [ProducesResponseType(typeof(ActionResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesErrorResponseType(typeof(void))]
     public async Task<ActionResult> ApprovePhoto(int photoId)
     {
         try
         {
-            var success = await adminService.ApprovePhotoAsync(photoId);
-            if (!success) return BadRequest("Failed to approve");
-            return NoContent();
+            _logger.LogDebug($"AdminController - {nameof(ApprovePhoto)} invoked. (photoId: {photoId})");
+            await adminService.ApprovePhotoAsync(photoId);
+            return Ok();
         }
         catch (Exception ex)
         {
 
-            return StatusCode(500, $"Internal server error: {ex.Message}");
+            _logger.LogError(ex, "Exception in AdminController.ApprovePhoto");
+            throw;
         }
     }
-
+    /// <summary>
+    /// POST /api/admin/reject-photo/{photoId}
+    /// </summary>
+    /// <param name="photoId"></param>
+    /// <returns></returns>
     [Authorize(Policy = "ModeratePhotoRole")]
     [HttpPost("reject-photo/{photoId}")]
+    [ProducesResponseType(typeof(ActionResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesErrorResponseType(typeof(void))]
     public async Task<ActionResult> RejectPhoto(int photoId)
     {
         try
         {
-            var success = await adminService.RejectPhotoAsync(photoId);
+            _logger.LogDebug($"AdminController - {nameof(RejectPhoto)} invoked. (photoId: {photoId})");
+            await adminService.RejectPhotoAsync(photoId);
 
-            if (!success) return BadRequest("Failed to reject photo");
 
             return Ok();
         }
         catch (Exception ex)
         {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
+            _logger.LogError(ex, "Exception in AdminController-RejectPhoto");
+            throw;
         }
     }
 
