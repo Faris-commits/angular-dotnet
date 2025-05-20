@@ -9,16 +9,16 @@ namespace API.Services;
 
 public class AccountService : IAccountService
 {
-private readonly UserManager<AppUser> _userManager;
-private readonly ITokenService _tokenService;
-private readonly IMapper _mapper;
+    private readonly UserManager<AppUser> _userManager;
+    private readonly ITokenService _tokenService;
+    private readonly IMapper _mapper;
 
-public AccountService(UserManager<AppUser> userManager, ITokenService tokenService, IMapper mapper)
-{
-    _userManager = userManager;
-    _tokenService = tokenService;
-    _mapper = mapper;
-}
+    public AccountService(UserManager<AppUser> userManager, ITokenService tokenService, IMapper mapper)
+    {
+        _userManager = userManager;
+        _tokenService = tokenService;
+        _mapper = mapper;
+    }
 
 
     public async Task<UserDto> LoginAsync(LoginDto loginDto)
@@ -42,7 +42,7 @@ public AccountService(UserManager<AppUser> userManager, ITokenService tokenServi
 
     public async Task<UserDto> RegisterAsync(RegisterDto registerDto)
     {
-         if (await UserExistsAsync(registerDto.Username)) return null;
+        if (await UserExistsAsync(registerDto.Username)) return null;
 
         var user = _mapper.Map<AppUser>(registerDto);
 
@@ -50,7 +50,7 @@ public AccountService(UserManager<AppUser> userManager, ITokenService tokenServi
 
         var result = await _userManager.CreateAsync(user, registerDto.Password);
 
-        if (!result.Succeeded) throw new Exception ("Failed creating user");
+        if (!result.Succeeded) throw new Exception("Failed creating user");
 
         return new UserDto
         {
@@ -63,7 +63,7 @@ public AccountService(UserManager<AppUser> userManager, ITokenService tokenServi
 
     public Task<bool> UserExistsAsync(string username)
     {
-       return _userManager.Users.AnyAsync(x => x.NormalizedUserName == username.ToUpper());
+        return _userManager.Users.AnyAsync(x => x.NormalizedUserName == username.ToUpper());
     }
 }
 

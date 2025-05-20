@@ -7,13 +7,13 @@ public class PresenceTracker
     public Task<bool> UserConnected(string username, string connectionId)
     {
         var isOnline = false;
-        lock (OnlineUsers) 
+        lock (OnlineUsers)
         {
             if (OnlineUsers.ContainsKey(username))
             {
                 OnlineUsers[username].Add(connectionId);
             }
-            else 
+            else
             {
                 OnlineUsers.Add(username, [connectionId]);
                 isOnline = true;
@@ -42,10 +42,10 @@ public class PresenceTracker
         return Task.FromResult(isOffline);
     }
 
-    public Task<string[]> GetOnlineUsers() 
+    public Task<string[]> GetOnlineUsers()
     {
         string[] onlineUsers;
-        lock(OnlineUsers)
+        lock (OnlineUsers)
         {
             onlineUsers = OnlineUsers.OrderBy(k => k.Key).Select(k => k.Key).ToArray();
         }
@@ -59,16 +59,16 @@ public class PresenceTracker
 
         if (OnlineUsers.TryGetValue(username, out var connections))
         {
-            lock(connections) 
+            lock (connections)
             {
                 connectionIds = connections.ToList();
             }
         }
-        else 
+        else
         {
             connectionIds = [];
         }
 
         return Task.FromResult(connectionIds);
     }
-}   
+}

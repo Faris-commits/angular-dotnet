@@ -15,19 +15,19 @@ public class LikesService : ILikesService
     }
     public async Task<IEnumerable<int>> GetCurrentUserLikeIdsAsync(int userId)
     {
-         return await _unitOfWork.LikesRepository.GetCurrentUserLikeIds(userId);
+        return await _unitOfWork.LikesRepository.GetCurrentUserLikeIds(userId);
     }
 
     public async Task<PagedList<MemberDto>> GetUserLikesAsync(LikesParams likesParams)
     {
-       return await _unitOfWork.LikesRepository.GetUserLikes(likesParams);
+        return await _unitOfWork.LikesRepository.GetUserLikes(likesParams);
     }
 
     public async Task<bool> ToggleLikeAsync(int sourceUserId, int targetUserId)
     {
-         
 
-        if (sourceUserId == targetUserId) throw new Exception ("You cannot like yourself");
+
+        if (sourceUserId == targetUserId) throw new Exception("You cannot like yourself");
 
         var existingLike = await _unitOfWork.LikesRepository.GetUserLike(sourceUserId, targetUserId);
 
@@ -41,7 +41,7 @@ public class LikesService : ILikesService
 
             _unitOfWork.LikesRepository.AddLike(like);
         }
-        else 
+        else
         {
             _unitOfWork.LikesRepository.DeleteLike(existingLike);
         }

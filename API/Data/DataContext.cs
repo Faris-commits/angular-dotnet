@@ -57,7 +57,7 @@ public class DataContext(DbContextOptions options) : IdentityDbContext<AppUser, 
             .WithMany(x => x.MessagesSent)
             .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Entity<Photo>()
-            .HasQueryFilter(p => p.IsApproved == true);
+        builder.Entity<Photo>()
+        .HasQueryFilter(p => p.IsApproved == true);
     }
 }

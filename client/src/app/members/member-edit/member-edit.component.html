@@ -77,18 +77,21 @@
 
             <h4 class="mt-2">Location Details</h4>
             <div class="d-flex align-items-center">
-              <label>City: </label>
+              <app-input-wrapper
+                name="city"
+                label="City: "
+                [(ngModel)]="member.city">
+              </app-input-wrapper>
               <input
                 type="text"
                 [(ngModel)]="member.city"
                 class="form-control mx-2"
                 name="city" />
               <label>Country: </label>
-              <input
+              <app-input-wrapper
                 type="text"
-                [(ngModel)]="member.country"
-                class="form-control mx-2"
-                name="country" />
+                name="country"
+                [(ngModel)]="member.country"></app-input-wrapper>
             </div>
           </form>
         </tab>

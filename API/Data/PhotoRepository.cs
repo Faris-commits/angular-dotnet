@@ -19,12 +19,13 @@ public class PhotoRepository(DataContext context) : IPhotoRepository
         return await context.Photos
             .IgnoreQueryFilters()
             .Where(x => x.IsApproved == false)
-            .Select(x => new PhotoForApprovalDto{
+            .Select(x => new PhotoForApprovalDto
+            {
                 Id = x.Id,
                 Username = x.AppUser.UserName,
                 Url = x.Url,
                 IsApproved = x.IsApproved,
-                
+
             }).ToListAsync();
     }
 

@@ -34,7 +34,7 @@ public static class IdentityServiceExtensions
 
                 options.Events = new JwtBearerEvents
                 {
-                    OnMessageReceived = context => 
+                    OnMessageReceived = context =>
                     {
                         var accessToken = context.Request.Query["access_token"];
 
@@ -52,7 +52,7 @@ public static class IdentityServiceExtensions
         services.AddAuthorizationBuilder()
             .AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"))
             .AddPolicy("ModeratePhotoRole", policy => policy.RequireRole("Admin", "Moderator"));
-        
+
         return services;
     }
 }

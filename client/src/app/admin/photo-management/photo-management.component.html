@@ -8,12 +8,16 @@
         alt="{{ photo.username }}" />
 
       <div class="text-center">
-        <button class="btn btn-sm btn-success" (click)="approvePhoto(photo.id)">
-          Approve
-        </button>
-        <button class="btn btn-danger" (click)="rejectPhoto(photo.id)">
-          Reject
-        </button>
+        <app-button-wrapper
+          class="btn btn-sm btn-success"
+          (click)="approvePhoto(photo.id)"
+          text="Aprove">
+        </app-button-wrapper>
+        <app-button-wrapper
+          class="btn btn-danger"
+          (click)="rejectPhoto(photo.id)"
+          text="Reject">
+        </app-button-wrapper>
       </div>
     </div>
   }

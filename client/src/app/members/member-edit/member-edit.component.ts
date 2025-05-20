@@ -14,6 +14,7 @@ import { ToastrService } from 'ngx-toastr';
 import { PhotoEditorComponent } from '../photo-editor/photo-editor.component';
 import { DatePipe } from '@angular/common';
 import { TimeagoModule } from 'ngx-timeago';
+import { InputWrapperComponent } from "../../input-wrapper/input-wrapper/input-wrapper.component";
 
 @Component({
   selector: 'app-member-edit',
@@ -26,7 +27,8 @@ import { TimeagoModule } from 'ngx-timeago';
     PhotoEditorComponent,
     DatePipe,
     TimeagoModule,
-  ],
+    InputWrapperComponent
+],
 })
 export class MemberEditComponent implements OnInit {
   @ViewChild('editForm') editForm?: NgForm;
