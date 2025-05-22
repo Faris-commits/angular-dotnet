@@ -18,16 +18,17 @@ public class PhotoRepository(DataContext context) : IPhotoRepository
     {
         return await context.Photos
             .IgnoreQueryFilters()
+            .Include(x => x.AppUser)
             .Where(x => x.IsApproved == false)
             .Select(x => new PhotoForApprovalDto
             {
                 Id = x.Id,
-                Username = x.AppUser.UserName,
+                Username = x.AppUser != null ? x.AppUser.UserName : null,
                 Url = x.Url,
                 IsApproved = x.IsApproved,
-
             }).ToListAsync();
     }
+
 
     public void RemovePhoto(Photo photo)
     {

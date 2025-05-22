@@ -35,8 +35,8 @@ public class AccountController : ControllerBase
         try
         {
             _logger.LogDebug($"AccountController - {nameof(Register)} invoked.(registerDto: {registerDto})");
-            await _accountService.RegisterAsync(registerDto);
-            return Ok(registerDto);
+          var userDto = await _accountService.RegisterAsync(registerDto);
+            return Ok(userDto);
 
         }
         catch (Exception ex)

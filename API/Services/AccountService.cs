@@ -13,26 +13,34 @@ public class AccountService : IAccountService
     private readonly ITokenService _tokenService;
     private readonly IMapper _mapper;
 
-    public AccountService(UserManager<AppUser> userManager, ITokenService tokenService, IMapper mapper)
+    private readonly ILogger<AccountService> _logger;
+
+    public AccountService(UserManager<AppUser> userManager, ITokenService tokenService,
+     IMapper mapper, ILogger<AccountService> logger)
     {
         _userManager = userManager;
         _tokenService = tokenService;
         _mapper = mapper;
+        _logger = logger;
     }
 
 
     public async Task<UserDto> LoginAsync(LoginDto loginDto)
     {
+        _logger.LogDebug("LoginAsync for user: {username}", loginDto.Username);
         var user = await _userManager.Users
             .Include(p => p.Photos)
                 .FirstOrDefaultAsync(x =>
                     x.NormalizedUserName == loginDto.Username.ToUpper());
 
-        if (user == null || user.UserName == null) return null;
+        if (user == null) throw new Exception("User is not found");
+
+        _logger.LogInformation("User logged in successfully: {Username}", loginDto.Username);
+
 
         return new UserDto
         {
-            Username = user.UserName,
+            Username = user.UserName!,
             KnownAs = user.KnownAs,
             Token = await _tokenService.CreateToken(user),
             Gender = user.Gender,
@@ -42,7 +50,13 @@ public class AccountService : IAccountService
 
     public async Task<UserDto> RegisterAsync(RegisterDto registerDto)
     {
-        if (await UserExistsAsync(registerDto.Username)) return null;
+        _logger.LogDebug("RegisterAsync for user: {Username}", registerDto.Username);
+
+        if (await UserExistsAsync(registerDto.Username))
+        {
+
+            throw new Exception("Failed to register, user already exists");
+        }
 
         var user = _mapper.Map<AppUser>(registerDto);
 
@@ -50,7 +64,10 @@ public class AccountService : IAccountService
 
         var result = await _userManager.CreateAsync(user, registerDto.Password);
 
-        if (!result.Succeeded) throw new Exception("Failed creating user");
+        if (!result.Succeeded)
+            throw new Exception("Failed creating user");
+
+        _logger.LogInformation("User registered successfully: {Username}", registerDto.Username);
 
         return new UserDto
         {
