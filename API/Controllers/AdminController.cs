@@ -117,7 +117,7 @@ public class AdminController(
         {
             _logger.LogDebug($"AdminController - {nameof(ApprovePhoto)} invoked. (photoId: {photoId})");
             await adminService.ApprovePhotoAsync(photoId);
-            return Ok();
+            return Ok(photoId);
         }
         catch (Exception ex)
         {
@@ -145,9 +145,7 @@ public class AdminController(
         {
             _logger.LogDebug($"AdminController - {nameof(RejectPhoto)} invoked. (photoId: {photoId})");
             await adminService.RejectPhotoAsync(photoId);
-
-
-            return Ok();
+            return Ok(photoId);
         }
         catch (Exception ex)
         {

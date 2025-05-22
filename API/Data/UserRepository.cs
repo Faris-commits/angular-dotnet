@@ -4,15 +4,29 @@ using API.Entities;
 using API.Helpers;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace API;
 
-public class UserRepository(DataContext context, IMapper mapper) : IUserRepository
+public class UserRepository : IUserRepository
 {
-    public Task<bool> AddToRolesAsync(AppUser user, IEnumerable<string> enumerable)
+     private readonly DataContext context;
+    private readonly IMapper mapper;
+    private readonly UserManager<AppUser> _userManager;
+    private readonly RoleManager<AppRole> _roleManager;
+
+    public UserRepository(DataContext context, IMapper mapper, UserManager<AppUser> userManager, RoleManager<AppRole> roleManager)
     {
-        throw new NotImplementedException();
+        this.context = context;
+        this.mapper = mapper;
+        _userManager = userManager;
+        _roleManager = roleManager;
+    }
+    public async Task<bool> AddToRolesAsync(AppUser user, IEnumerable<string> roles)
+    {
+        var result = await _userManager.AddToRolesAsync(user, roles);
+        return result.Succeeded;
     }
 
     public async Task<MemberDto?> GetMemberAsync(string username)
@@ -82,9 +96,9 @@ public class UserRepository(DataContext context, IMapper mapper) : IUserReposito
             .SingleOrDefaultAsync(x => x.UserName == username);
     }
 
-    public Task<IEnumerable<string>> GetUserRolesAsync(AppUser user)
+    public async Task<IEnumerable<string>> GetUserRolesAsync(AppUser user)
     {
-        throw new NotImplementedException();
+         return await _userManager.GetRolesAsync(user);
     }
 
     public async Task<IEnumerable<AppUser>> GetUsersAsync()
@@ -94,14 +108,26 @@ public class UserRepository(DataContext context, IMapper mapper) : IUserReposito
             .ToListAsync();
     }
 
-    public Task<IEnumerable<object>> GetUsersWithRolesAsync()
+    public async Task<IEnumerable<object>> GetUsersWithRolesAsync()
     {
-        throw new NotImplementedException();
+        return await context.Users
+            .OrderBy(u => u.UserName)
+            .Select(u => new
+            {
+                u.Id,
+                Username = u.UserName,
+                Roles = (from userRole in context.UserRoles
+                         join role in context.Roles on userRole.RoleId equals role.Id
+                         where userRole.UserId == u.Id
+                         select role.Name).ToList()
+            })
+            .ToListAsync();
     }
 
-    public Task<bool> RemoveFromRolesAsync(AppUser user, IEnumerable<string> enumerable)
+    public async Task<bool> RemoveFromRolesAsync(AppUser user, IEnumerable<string> roles)
     {
-        throw new NotImplementedException();
+         var result = await _userManager.RemoveFromRolesAsync(user, roles);
+        return result.Succeeded;
     }
 
     public void Update(AppUser user)
