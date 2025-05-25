@@ -15,4 +15,5 @@ public class Photo
     // Navigation properties
     public int AppUserId { get; set; }
     public AppUser AppUser { get; set; } = null!;
+    public ICollection<PhotoTag> PhotoTags { get; set; } = new List<PhotoTag>();
 }

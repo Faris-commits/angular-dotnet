@@ -3,7 +3,7 @@
 namespace API.Data;
 
 public class UnitOfWork(DataContext context, IUserRepository userRepository,
-    ILikesRepository likesRepository, IMessageRepository messageRepository, IPhotoRepository photoRepository) : IUnitOfWork
+    ILikesRepository likesRepository, IMessageRepository messageRepository, IPhotoRepository photoRepository, ITagRepository tagRepository) : IUnitOfWork
 {
     public IUserRepository UserRepository => userRepository;
 
@@ -12,6 +12,8 @@ public class UnitOfWork(DataContext context, IUserRepository userRepository,
     public ILikesRepository LikesRepository => likesRepository;
 
     public IPhotoRepository PhotoRepository => photoRepository;
+
+    public ITagRepository TagRepository => tagRepository;
 
     public async Task<bool> Complete()
     {

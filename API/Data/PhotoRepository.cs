@@ -29,6 +29,15 @@ public class PhotoRepository(DataContext context) : IPhotoRepository
             }).ToListAsync();
     }
 
+    public async Task<IEnumerable<Photo>> GetPhotosByTagAsync(int tagId)
+    {
+        return await context.Photos
+         .Include(p => p.PhotoTags)
+         .ThenInclude(pt => pt.Tag)
+         .Where(p => p.PhotoTags.Any(pt => pt.TagId == tagId))
+         .ToListAsync();
+    }
+
 
     public void RemovePhoto(Photo photo)
     {

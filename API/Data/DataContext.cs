@@ -13,8 +13,9 @@ public class DataContext(DbContextOptions options) : IdentityDbContext<AppUser, 
     public DbSet<Message> Messages { get; set; }
     public DbSet<Group> Groups { get; set; }
     public DbSet<Connection> Connections { get; set; }
-
     public DbSet<Photo> Photos { get; set; }
+    public DbSet<Tag> Tags { get; set; }
+    public DbSet<PhotoTag> PhotoTags { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -45,7 +46,7 @@ public class DataContext(DbContextOptions options) : IdentityDbContext<AppUser, 
             .HasOne(s => s.TargetUser)
             .WithMany(l => l.LikedByUsers)
             .HasForeignKey(s => s.TargetUserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
 
         builder.Entity<Message>()
             .HasOne(x => x.Recipient)
@@ -59,5 +60,22 @@ public class DataContext(DbContextOptions options) : IdentityDbContext<AppUser, 
 
         builder.Entity<Photo>()
         .HasQueryFilter(p => p.IsApproved == true);
+
+        builder.Entity<PhotoTag>()
+            .HasKey(pt => new { pt.PhotoId, pt.TagId });
+
+        builder.Entity<PhotoTag>()
+            .HasOne(pt => pt.Photo)
+            .WithMany(p => p.PhotoTags)
+            .HasForeignKey(pt => pt.PhotoId);
+
+        builder.Entity<PhotoTag>()
+            .HasOne(pt => pt.Tag)
+            .WithMany(t => t.PhotoTags)
+            .HasForeignKey(pt => pt.TagId);
+
+        builder.Entity<Tag>()
+            .HasIndex(t => t.Name)
+            .IsUnique();
     }
 }

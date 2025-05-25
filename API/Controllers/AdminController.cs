@@ -154,4 +154,64 @@ public class AdminController(
         }
     }
 
+    /// <summary>
+/// GET /api/admin/photo-tags
+/// </summary>
+[Authorize(Policy = "RequireAdminRole")]
+[HttpGet("photo-tags")]
+public async Task<ActionResult> GetPhotoTags()
+{
+    try
+    {
+        _logger.LogDebug("AdminController - GetPhotoTags invoked");
+        var tags = await adminService.GetPhotoTagsAsync();
+        return Ok(tags);
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Exception in AdminController.GetPhotoTags");
+        throw;
+    }
+}
+
+    /// <summary>
+    /// POST /api/admin/photo-tags
+    /// </summary>
+    [Authorize(Policy = "RequireAdminRole")]
+    [HttpPost("photo-tags")]
+    public async Task<ActionResult> CreatePhotoTag([FromBody] string tagName)
+    {
+        try
+        {
+            _logger.LogDebug("AdminController - CreatePhotoTag invoked (tagName: {tagName})", tagName);
+            var tag = await adminService.CreatePhotoTagAsync(tagName);
+            return Ok(tag);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception in AdminController.CreatePhotoTag");
+            throw;
+        }
+    }
+/// <summary>
+/// DELETE /api/admin/photo-tags/{tagId}
+/// </summary>
+[Authorize(Policy = "RequireAdminRole")]
+[HttpDelete("photo-tags/{tagId}")]
+public async Task<ActionResult> DeletePhotoTag(int tagId)
+{
+    try
+    {
+        _logger.LogDebug("AdminController - DeletePhotoTag invoked (tagId: {tagId})", tagId);
+        var result = await adminService.DeletePhotoTagAsync(tagId);
+        if (!result) return NotFound();
+        return Ok();
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Exception in AdminController.DeletePhotoTag");
+        return StatusCode(500, "An error occurred while deleting the tag.");
+    }
+}
+
 }

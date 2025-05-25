@@ -17,4 +17,7 @@ public interface IUsersService
 
     Task<PhotoDto> AddPhotoAsync(string username, IFormFile file);
 
+    Task SetPhotoTagsAsync(string username, int photoId, List<int> tagIds);
+    Task<IEnumerable<PhotoDto>> GetPhotosByTagAsync(int tagId);
+
 }

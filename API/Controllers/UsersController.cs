@@ -153,7 +153,7 @@ public class UsersController(IUsersService usersService, ILogger<UsersController
         catch (Exception ex)
         {
 
-            _logger.LogError(ex,"Exception in UsersController.SetMainPhoto");
+            _logger.LogError(ex, "Exception in UsersController.SetMainPhoto");
             throw;
         }
     }
@@ -185,6 +185,44 @@ public class UsersController(IUsersService usersService, ILogger<UsersController
             throw;
         }
     }
+
+    /// <summary>
+    /// POST /api/users/photos/{photoId}/tags
+    /// </summary>
+    [HttpPost("photos/{photoId}/tags")]
+    public async Task<ActionResult> SetPhotoTags(int photoId, [FromBody] List<int> tagIds)
+    {
+        try
+        {
+            _logger.LogDebug($"UsersController - SetPhotoTags invoked. (photoId: {photoId}, tagIds: {string.Join(",", tagIds)})");
+            await _usersService.SetPhotoTagsAsync(User.GetUsername(), photoId, tagIds);
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception in UsersController.SetPhotoTags");
+            throw;
+        }
+    }
+
+   /// <summary>
+/// GET /api/users/photos/by-tag/{tagId}
+/// </summary>
+[HttpGet("photos/by-tag/{tagId}")]
+public async Task<ActionResult<IEnumerable<PhotoDto>>> GetPhotosByTag(int tagId)
+{
+    try
+    {
+        _logger.LogDebug($"UsersController - GetPhotosByTag invoked. (tagId: {tagId})");
+        var photos = await _usersService.GetPhotosByTagAsync(tagId);
+        return Ok(photos);
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Exception in UsersController.GetPhotosByTag");
+        throw;
+    }
+}
 }
 
 

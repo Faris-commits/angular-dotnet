@@ -7,4 +7,5 @@ public class PhotoDto
     public bool IsMain { get; set; }
 
     public bool IsApproved { get; set; }
+    public List<PhotoTagDto> Tags { get; set; } = new();
 }

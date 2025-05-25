@@ -78,6 +78,12 @@ namespace API.Services
             return true;
         }
 
+        public async Task<IEnumerable<PhotoDto>> GetPhotosByTagAsync(int tagId)
+        {
+            var photos = await _unitOfWork.PhotoRepository.GetPhotosByTagAsync(tagId);
+            return photos.Select(p => _mapper.Map<PhotoDto>(p));
+        }
+
         public async Task<MemberDto> GetUserAsync(string username, string currentUsername)
         {
             if (string.IsNullOrEmpty(username)) throw new ArgumentException("Username cannot be null or empty", nameof(username));
@@ -108,6 +114,27 @@ namespace API.Services
 
             photo.IsMain = true;
             return await _unitOfWork.Complete();
+        }
+
+        public async Task SetPhotoTagsAsync(string username, int photoId, List<int> tagIds)
+        {
+            var user = await _unitOfWork.UserRepository.GetUserByUsernameAsync(username);
+            if (user == null) throw new Exception("User not found");
+
+            var photo = user.Photos.FirstOrDefault(p => p.Id == photoId);
+            if (photo == null) throw new Exception("Photo not found");
+
+            photo.PhotoTags.Clear();
+
+            foreach (var tagId in tagIds.Distinct())
+            {
+                var tag = await _unitOfWork.TagRepository.GetTagByIdAsync(tagId);
+                if (tag != null)
+                {
+                    photo.PhotoTags.Add(new PhotoTag { PhotoId = photoId, TagId = tagId });
+                }
+            }
+            await _unitOfWork.Complete();
         }
 
         public async Task UpdateUserAsync(string username, MemberUpdateDto memberUpdateDto)
