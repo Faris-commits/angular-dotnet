@@ -1,6 +1,4 @@
 <div *ngIf="loadingStats || loadingUsers" class="loading">Loading stats...</div>
-
-<!-- Photo Approval Stats Section -->
 <div *ngIf="!loadingStats && photoApprovalStats.length > 0">
   <h3>Photo Approval Stats</h3>
   <table class="table">
@@ -25,7 +23,7 @@
   <p>No photo approval stats available.</p>
 </div>
 
-<!-- Users Without Main Photo Section -->
+
 <div *ngIf="!loadingUsers && usersWithoutMainPhoto.length > 0">
   <h3>Users Without Main Photo</h3>
   <table class="table">
