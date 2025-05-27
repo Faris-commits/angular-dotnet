@@ -1,7 +1,9 @@
+using API.Data;
 using API.DTOs;
 using API.Entities;
 using API.Interfaces;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace API.Services;
@@ -12,13 +14,15 @@ public class AdminService : IAdminService
     private readonly IPhotoService _photoService;
     private readonly ILogger<AdminService> _logger;
     private readonly IMapper _mapper;
+    private readonly DataContext _context;
 
-    public AdminService(IUnitOfWork unitOfWork, IPhotoService photoService, ILogger<AdminService> logger, IMapper mapper)
+    public AdminService(IUnitOfWork unitOfWork, IPhotoService photoService, ILogger<AdminService> logger, IMapper mapper, DataContext context)
     {
         _unitOfWork = unitOfWork;
         _photoService = photoService;
         _logger = logger;
         _mapper = mapper;
+        _context = context;
     }
 
     public async Task<(bool Success, string Message)> ApprovePhotoAsync(int photoId)
@@ -237,4 +241,27 @@ public class AdminService : IAdminService
         _logger.LogInformation("Tag with ID {TagId} removed from photo with ID {PhotoId}.", tagId, photoId);
         return true;
     }
+    public async Task<IEnumerable<PhotoApprovalStatsDto>> GetPhotoApprovalStatsAsync()
+    {
+        var stats = await _context.PhotoApprovalStats
+            .FromSqlRaw("EXEC GetPhotoApprovalStats")
+            .ToListAsync();
+
+        return stats.Select(p => new PhotoApprovalStatsDto
+        {
+            Username = p.Username,
+            ApprovedPhotos = p.ApprovedPhotos,
+            UnapprovedPhotos = p.UnapprovedPhotos
+        });
+    }
+
+public async Task<IEnumerable<string>> GetUsersWithoutMainPhotoAsync()
+{
+    var users = await _context.UsersWithoutMainPhoto
+        .FromSqlRaw("EXEC GetUsersWithoutMainPhoto")
+        .AsNoTracking()
+        .ToListAsync();
+
+    return users.Select(u => u.Username);
+}
 }

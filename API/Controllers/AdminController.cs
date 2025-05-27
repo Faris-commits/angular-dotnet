@@ -288,4 +288,52 @@ public class AdminController(
         }
     }
 
+    /// <summary>
+    /// GET /api/admin/photo-approval-stats
+    /// </summary>
+    /// <returns></returns>
+    [Authorize(Policy = "RequireAdminRole")]
+    [HttpGet("photo-approval-stats")]
+    [ProducesResponseType(typeof(IEnumerable<PhotoApprovalStatsDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<IEnumerable<PhotoApprovalStatsDto>>> GetPhotoApprovalStats()
+    {
+        try
+        {
+            _logger.LogDebug("AdminController - GetPhotoApprovalStats invoked");
+            var stats = await adminService.GetPhotoApprovalStatsAsync();
+            return Ok(stats);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception in AdminController.GetPhotoApprovalStats");
+            return StatusCode(500, "An error occurred while retrieving photo approval statistics.");
+        }
+    }
+
+    /// <summary>
+    /// GET /api/admin/users-without-main-photo
+    /// </summary>
+    /// <returns></returns>
+    [Authorize(Policy = "RequireAdminRole")]
+    [HttpGet("users-without-main-photo")]
+    [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<IEnumerable<string>>> GetUsersWithoutMainPhoto()
+    {
+        try
+        {
+            _logger.LogDebug("AdminController - GetUsersWithoutMainPhoto invoked");
+            var users = await adminService.GetUsersWithoutMainPhotoAsync();
+            return Ok(users);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception in AdminController.GetUsersWithoutMainPhoto");
+            return StatusCode(500, "An error occurred while retrieving users without main photo.");
+        }
+    }
+
 }

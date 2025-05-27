@@ -6,9 +6,14 @@
         <app-user-management></app-user-management>
       </div>
     </tab>
-    <tab heading="Photo manangement" *appHasRole="['Admin', 'Moderator']">
+    <tab heading="Photo management" *appHasRole="['Admin', 'Moderator']">
       <div class="container">
         <app-photo-management></app-photo-management>
+      </div>
+    </tab>
+    <tab heading="Photo approval stats" *appHasRole="['Admin']">
+      <div class="container">
+        <app-photo-approval-stats></app-photo-approval-stats>
       </div>
     </tab>
   </tabset>

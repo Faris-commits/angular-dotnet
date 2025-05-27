@@ -16,6 +16,8 @@ public class DataContext(DbContextOptions options) : IdentityDbContext<AppUser, 
     public DbSet<Photo> Photos { get; set; }
     public DbSet<Tag> Tags { get; set; }
     public DbSet<PhotoTag> PhotoTags { get; set; }
+    public DbSet<PhotoApprovalStats> PhotoApprovalStats { get; set; }
+    public DbSet<UserWithoutMainPhotoDto> UsersWithoutMainPhoto { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -77,5 +79,11 @@ public class DataContext(DbContextOptions options) : IdentityDbContext<AppUser, 
         builder.Entity<Tag>()
             .HasIndex(t => t.Name)
             .IsUnique();
+
+        builder.Entity<PhotoApprovalStats>().HasNoKey();
+        builder.Entity<UserWithoutMainPhotoDto>(entity =>
+{
+    entity.HasNoKey();
+});
     }
 }
