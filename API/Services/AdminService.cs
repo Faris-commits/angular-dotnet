@@ -255,13 +255,13 @@ public class AdminService : IAdminService
         });
     }
 
-public async Task<IEnumerable<string>> GetUsersWithoutMainPhotoAsync()
-{
-    var users = await _context.UsersWithoutMainPhoto
-        .FromSqlRaw("EXEC GetUsersWithoutMainPhoto")
-        .AsNoTracking()
-        .ToListAsync();
+    public async Task<IEnumerable<string>> GetUsersWithoutMainPhotoAsync()
+    {
+        var users = await _context.UsersWithoutMainPhoto
+            .FromSqlRaw("EXEC GetUsersWithoutMainPhoto")
+            .AsNoTracking()
+            .ToListAsync();
 
-    return users.Select(u => u.Username);
-}
+        return users.Select(u => u.Username);
+    }
 }
