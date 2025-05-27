@@ -1,4 +1,6 @@
-﻿using API.DTOs;
+﻿using API.Data;
+using API.DTOs;
+using API.Entities;
 using API.Extensions;
 using API.Helpers;
 using API.Interfaces;
@@ -8,10 +10,11 @@ using Microsoft.AspNetCore.Mvc;
 namespace API.Controllers;
 
 [Authorize]
-public class UsersController(IUsersService usersService, ILogger<UsersController> logger) : BaseApiController
+public class UsersController(IUsersService usersService, ILogger<UsersController> logger, IUnitOfWork unitOfWork) : BaseApiController
 {
     private readonly IUsersService _usersService = usersService;
     private readonly ILogger<UsersController> _logger = logger;
+    private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
     /// <summary>
     /// GET /api/users
@@ -187,42 +190,162 @@ public class UsersController(IUsersService usersService, ILogger<UsersController
     }
 
     /// <summary>
+    /// GET /api/users/photo-tags
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("photo-tags")]
+    [ProducesResponseType(typeof(IEnumerable<PhotoTagDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<IEnumerable<PhotoTagDto>>> GetPhotoTags()
+    {
+        try
+        {
+            _logger.LogDebug("UsersController - GetPhotoTags invoked");
+            var tags = await _unitOfWork.TagRepository.GetAllTagsAsync();
+            var tagDtos = tags.Select(t => new PhotoTagDto { Id = t.Id, Name = t.Name });
+            _logger.LogInformation("{Count} photo tags retrieved.", tagDtos.Count());
+            return Ok(tagDtos);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception in UsersController.GetPhotoTags");
+            return StatusCode(500, "An error occurred while retrieving photo tags.");
+        }
+    }
+
+    /// <summary>
+    /// POST /api/users/photo-tags
+    /// </summary>
+    /// <param name="dto">The tag creation DTO</param>
+    /// <returns></returns>
+    [HttpPost("photo-tags")]
+    [ProducesResponseType(typeof(PhotoTagDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<PhotoTagDto>> CreateTag([FromBody] CreateTagDto dto)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(dto.Name))
+                return BadRequest("Tag name is required.");
+
+            _logger.LogDebug("UsersController - CreateTag invoked (tagName: {TagName})", dto.Name);
+
+            var existing = await _unitOfWork.TagRepository.GetTagByNameAsync(dto.Name.Trim());
+            if (existing != null)
+                return BadRequest("Tag already exists.");
+
+            var tag = new Tag { Name = dto.Name.Trim() };
+            await _unitOfWork.TagRepository.AddTagAsync(tag);
+            await _unitOfWork.Complete();
+
+            _logger.LogInformation("Tag '{TagName}' created successfully with ID {TagId}.", dto.Name, tag.Id);
+            return Ok(new PhotoTagDto { Id = tag.Id, Name = tag.Name });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception in UsersController.CreateTag");
+            return StatusCode(500, "An error occurred while creating the tag.");
+        }
+    }
+
+    /// <summary>
+    /// GET /api/users/photos/by-tag/{tagId}
+    /// </summary>
+    /// <param name="tagId">The ID of the tag</param>
+    /// <returns></returns>
+    [HttpGet("photos/by-tag/{tagId}")]
+    [ProducesResponseType(typeof(IEnumerable<PhotoDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<IEnumerable<PhotoDto>>> GetPhotosByTag(int tagId)
+    {
+        try
+        {
+            _logger.LogDebug("UsersController - GetPhotosByTag invoked (tagId: {TagId})", tagId);
+
+            var photos = await _usersService.GetPhotosByTagAsync(tagId);
+            if (photos == null || !photos.Any())
+            {
+                _logger.LogWarning("No photos found for tag ID {TagId}.", tagId);
+                return NotFound("No photos found for the specified tag.");
+            }
+
+            _logger.LogInformation("{Count} photos retrieved for tag ID {TagId}.", photos.Count(), tagId);
+            return Ok(photos);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception in UsersController.GetPhotosByTag");
+            return StatusCode(500, "An error occurred while retrieving photos by tag.");
+        }
+    }
+
+    /// <summary>
     /// POST /api/users/photos/{photoId}/tags
     /// </summary>
+    /// <param name="photoId">The ID of the photo</param>
+    /// <param name="tagIds">The list of tag IDs to assign</param>
+    /// <returns></returns>
     [HttpPost("photos/{photoId}/tags")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> SetPhotoTags(int photoId, [FromBody] List<int> tagIds)
     {
         try
         {
-            _logger.LogDebug($"UsersController - SetPhotoTags invoked. (photoId: {photoId}, tagIds: {string.Join(",", tagIds)})");
-            await _usersService.SetPhotoTagsAsync(User.GetUsername(), photoId, tagIds);
+            _logger.LogDebug("UsersController - SetPhotoTags invoked (photoId: {PhotoId}, tagIds: {TagIds})", photoId, tagIds);
+
+            var username = User.GetUsername();
+            await _usersService.SetPhotoTagsAsync(username, photoId, tagIds);
+
+            _logger.LogInformation("Tags {TagIds} assigned to photo ID {PhotoId} by user {Username}.", tagIds, photoId, username);
             return Ok();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Exception in UsersController.SetPhotoTags");
-            throw;
+            return StatusCode(500, "An error occurred while assigning tags to the photo.");
         }
     }
 
-   /// <summary>
-/// GET /api/users/photos/by-tag/{tagId}
-/// </summary>
-[HttpGet("photos/by-tag/{tagId}")]
-public async Task<ActionResult<IEnumerable<PhotoDto>>> GetPhotosByTag(int tagId)
-{
-    try
+    /// <summary>
+    /// DELETE /api/users/tags/{id}
+    /// </summary>
+    /// <param name="id">The ID of the tag to delete</param>
+    /// <returns></returns>
+    [HttpDelete("tags/{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> DeleteTag(int id)
     {
-        _logger.LogDebug($"UsersController - GetPhotosByTag invoked. (tagId: {tagId})");
-        var photos = await _usersService.GetPhotosByTagAsync(tagId);
-        return Ok(photos);
+        try
+        {
+            _logger.LogDebug("UsersController - DeleteTag invoked (tagId: {TagId})", id);
+
+            var result = await _usersService.DeleteTagAsync(id);
+            if (!result)
+            {
+                _logger.LogWarning("Tag with ID {TagId} not found.", id);
+                return NotFound();
+            }
+
+            _logger.LogInformation("Tag with ID {TagId} deleted successfully.", id);
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception in UsersController.DeleteTag");
+            return StatusCode(500, "An error occurred while deleting the tag.");
+        }
     }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Exception in UsersController.GetPhotosByTag");
-        throw;
-    }
-}
 }
 
 

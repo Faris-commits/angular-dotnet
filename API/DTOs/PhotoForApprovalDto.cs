@@ -12,4 +12,6 @@ public class PhotoForApprovalDto
 
     public bool IsApproved { get; set; }
 
+    public List<PhotoTagDto> Tags { get; set; }
+   
 }

@@ -3,6 +3,8 @@ using API.Entities;
 using API.Helpers;
 using API.Interfaces;
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace API.Services
 {
@@ -118,39 +120,96 @@ namespace API.Services
 
         public async Task SetPhotoTagsAsync(string username, int photoId, List<int> tagIds)
         {
+            if (string.IsNullOrWhiteSpace(username))
+                throw new ArgumentException("Username cannot be null or empty.", nameof(username));
+
+            if (tagIds == null || !tagIds.Any())
+                throw new ArgumentException("Tag IDs cannot be null or empty.", nameof(tagIds));
+
             var user = await _unitOfWork.UserRepository.GetUserByUsernameAsync(username);
-            if (user == null) throw new Exception("User not found");
+            if (user == null)
+                throw new KeyNotFoundException($"User with username '{username}' not found.");
 
-            var photo = user.Photos.FirstOrDefault(p => p.Id == photoId);
-            if (photo == null) throw new Exception("Photo not found");
+            var photo = await _unitOfWork.PhotoRepository.GetPhotoById(photoId);
+            if (photo == null || photo.AppUserId != user.Id)
+                throw new KeyNotFoundException($"Photo with ID {photoId} not found for user '{username}'.");
 
-            photo.PhotoTags.Clear();
+            if (photo.PhotoTags == null)
+                photo.PhotoTags = new List<PhotoTag>();
+
+
+            var existingTagIds = photo.PhotoTags.Select(pt => pt.TagId).ToList();
+            var duplicateTags = tagIds.Intersect(existingTagIds).ToList();
+            if (duplicateTags.Any())
+                throw new InvalidOperationException("Duplicate tags detected. Tags must be unique.");
 
             foreach (var tagId in tagIds.Distinct())
             {
-                var tag = await _unitOfWork.TagRepository.GetTagByIdAsync(tagId);
-                if (tag != null)
+                if (!existingTagIds.Contains(tagId))
                 {
+                    var tag = await _unitOfWork.TagRepository.GetTagByIdAsync(tagId);
+                    if (tag == null)
+                        throw new KeyNotFoundException($"Tag with ID {tagId} not found.");
+
                     photo.PhotoTags.Add(new PhotoTag { PhotoId = photoId, TagId = tagId });
                 }
             }
-            await _unitOfWork.Complete();
-        }
 
+            var result = await _unitOfWork.Complete();
+            if (!result)
+                throw new InvalidOperationException("Failed to update photo tags.");
+        }
         public async Task UpdateUserAsync(string username, MemberUpdateDto memberUpdateDto)
         {
-            if (string.IsNullOrEmpty(username)) throw new ArgumentException("Username cannot be null or empty", nameof(username));
-            if (memberUpdateDto == null) throw new ArgumentNullException(nameof(memberUpdateDto));
+            if (string.IsNullOrWhiteSpace(username))
+                throw new ArgumentException("Username cannot be null or empty.", nameof(username));
+
+            if (memberUpdateDto == null)
+                throw new ArgumentNullException(nameof(memberUpdateDto), "Member update data cannot be null.");
+
+            _logger.LogDebug("UsersService - UpdateUserAsync invoked (username: {Username})", username);
 
             var user = await _unitOfWork.UserRepository.GetUserByUsernameAsync(username);
-            if (user == null) throw new KeyNotFoundException($"User with username {username} not found.");
+            if (user == null)
+                throw new KeyNotFoundException($"User with username '{username}' not found.");
 
             _mapper.Map(memberUpdateDto, user);
 
             if (!await _unitOfWork.Complete())
-                throw new InvalidOperationException("Failed to update user");
+                throw new InvalidOperationException("Failed to update user.");
 
-            _logger.LogInformation("User with username {Username} updated successfully", username);
+            _logger.LogInformation("User with username {Username} updated successfully.", username);
+        }
+
+        public async Task<bool> DeleteTagAsync(int tagId)
+        {
+            if (tagId <= 0)
+                throw new ArgumentException("Invalid tag ID.", nameof(tagId));
+
+            _logger.LogDebug("UsersService - DeleteTagAsync invoked (tagId: {TagId})", tagId);
+
+            var tag = await _unitOfWork.TagRepository.GetTagByIdAsync(tagId);
+            if (tag == null)
+            {
+                _logger.LogWarning("Tag with ID {TagId} not found.", tagId);
+                return false;
+            }
+
+            var photoTags = _unitOfWork.Context.PhotoTags.Where(pt => pt.TagId == tagId).ToList();
+            if (photoTags.Any())
+            {
+                _logger.LogInformation("Removing {Count} photo tags associated with tag ID {TagId}.", photoTags.Count, tagId);
+                _unitOfWork.Context.PhotoTags.RemoveRange(photoTags);
+            }
+
+            _unitOfWork.TagRepository.RemoveTag(tag);
+
+            var result = await _unitOfWork.Complete();
+            if (!result)
+                throw new InvalidOperationException("Failed to delete tag.");
+
+            _logger.LogInformation("Tag with ID {TagId} deleted successfully.", tagId);
+            return true;
         }
     }
 }

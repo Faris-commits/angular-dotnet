@@ -11,7 +11,7 @@ namespace API;
 
 public class UserRepository : IUserRepository
 {
-     private readonly DataContext context;
+    private readonly DataContext context;
     private readonly IMapper mapper;
     private readonly UserManager<AppUser> _userManager;
     private readonly RoleManager<AppRole> _roleManager;
@@ -23,6 +23,7 @@ public class UserRepository : IUserRepository
         _userManager = userManager;
         _roleManager = roleManager;
     }
+
     public async Task<bool> AddToRolesAsync(AppUser user, IEnumerable<string> roles)
     {
         var result = await _userManager.AddToRolesAsync(user, roles);
@@ -83,22 +84,24 @@ public class UserRepository : IUserRepository
     public async Task<AppUser?> GetUserByPhotoId(int photoId)
     {
         return await context.Users
-        .Include(x => x.Photos)
-        .IgnoreQueryFilters()
-        .Where(x => x.Photos.Any(p => p.Id == photoId))
-        .FirstOrDefaultAsync();
+            .Include(x => x.Photos)
+            .IgnoreQueryFilters()
+            .Where(x => x.Photos.Any(p => p.Id == photoId))
+            .FirstOrDefaultAsync();
     }
 
-    public async Task<AppUser?> GetUserByUsernameAsync(string username)
+    public async Task<AppUser> GetUserByUsernameAsync(string username)
     {
         return await context.Users
-            .Include(x => x.Photos)
+            .Include(u => u.Photos)
+                .ThenInclude(p => p.PhotoTags)
+                    .ThenInclude(pt => pt.Tag)
             .SingleOrDefaultAsync(x => x.UserName == username);
     }
 
     public async Task<IEnumerable<string>> GetUserRolesAsync(AppUser user)
     {
-         return await _userManager.GetRolesAsync(user);
+        return await _userManager.GetRolesAsync(user);
     }
 
     public async Task<IEnumerable<AppUser>> GetUsersAsync()
@@ -126,7 +129,7 @@ public class UserRepository : IUserRepository
 
     public async Task<bool> RemoveFromRolesAsync(AppUser user, IEnumerable<string> roles)
     {
-         var result = await _userManager.RemoveFromRolesAsync(user, roles);
+        var result = await _userManager.RemoveFromRolesAsync(user, roles);
         return result.Succeeded;
     }
 

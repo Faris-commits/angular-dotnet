@@ -7,27 +7,25 @@ namespace API.Data;
 
 public class PhotoRepository(DataContext context) : IPhotoRepository
 {
-    public async Task<Photo?> GetPhotoById(int id)
-    {
-        return await context.Photos
-            .IgnoreQueryFilters()
-            .FirstOrDefaultAsync(x => x.Id == id);
-    }
+public async Task<Photo> GetPhotoById(int photoId)
+{
+    return await context.Photos
+        .IgnoreQueryFilters() 
+        .Include(p => p.PhotoTags)
+            .ThenInclude(pt => pt.Tag)
+        .FirstOrDefaultAsync(p => p.Id == photoId);
+}
 
-    public async Task<IEnumerable<PhotoForApprovalDto>> GetUnapprovedPhotos()
-    {
-        return await context.Photos
-            .IgnoreQueryFilters()
-            .Include(x => x.AppUser)
-            .Where(x => x.IsApproved == false)
-            .Select(x => new PhotoForApprovalDto
-            {
-                Id = x.Id,
-                Username = x.AppUser != null ? x.AppUser.UserName : null,
-                Url = x.Url,
-                IsApproved = x.IsApproved,
-            }).ToListAsync();
-    }
+  public async Task<List<Photo>> GetUnapprovedPhotos()
+{
+    return await context.Photos
+        .IgnoreQueryFilters()
+        .Include(p => p.AppUser) 
+        .Include(p => p.PhotoTags) 
+            .ThenInclude(pt => pt.Tag) 
+        .Where(p => !p.IsApproved) 
+        .ToListAsync();
+}
 
     public async Task<IEnumerable<Photo>> GetPhotosByTagAsync(int tagId)
     {

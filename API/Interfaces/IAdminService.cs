@@ -9,6 +9,8 @@ public interface IAdminService
     Task<IEnumerable<object>> GetUsersWithRolesAsync();
     Task<IEnumerable<PhotoTagDto>> GetPhotoTagsAsync();
     Task<PhotoTagDto> CreatePhotoTagAsync(string tagName);
+    Task<PhotoTagDto?> AddTagToPhotoAsync(int photoId, int tagId);
+    Task<bool> RemoveTagFromPhotoAsync(int photoId, int tagId);
     Task<bool> DeletePhotoTagAsync(int tagId);
     Task<(bool Success, IEnumerable<string> Roles)> EditRolesAsync(string username, string roles);
     Task<(IEnumerable<PhotoForApprovalDto> Photos, string Message)> GetPhotosForModerationAsync();

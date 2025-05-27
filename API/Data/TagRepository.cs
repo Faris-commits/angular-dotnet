@@ -15,9 +15,9 @@ public class TagRepository(DataContext context) : ITagRepository
         await context.Tags.OrderBy(t => t.Name).ToListAsync();
 
     public async Task<Tag?> GetTagByIdAsync(int id)
-    {
-        return await context.Tags.FindAsync(id);
-    }
+{
+    return await context.Tags.IgnoreQueryFilters().FirstOrDefaultAsync(t => t.Id == id);
+}
 
     public async Task<Tag?> GetTagByNameAsync(string name) =>
         await context.Tags.FirstOrDefaultAsync(t => t.Name == name);

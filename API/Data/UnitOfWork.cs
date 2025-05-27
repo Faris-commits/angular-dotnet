@@ -2,26 +2,40 @@
 
 namespace API.Data;
 
-public class UnitOfWork(DataContext context, IUserRepository userRepository,
-    ILikesRepository likesRepository, IMessageRepository messageRepository, IPhotoRepository photoRepository, ITagRepository tagRepository) : IUnitOfWork
+public class UnitOfWork : IUnitOfWork
 {
-    public IUserRepository UserRepository => userRepository;
+    private readonly DataContext _context;
+    public IUserRepository UserRepository { get; }
+    public IMessageRepository MessageRepository { get; }
+    public ILikesRepository LikesRepository { get; }
+    public IPhotoRepository PhotoRepository { get; }
+    public ITagRepository TagRepository { get; }
 
-    public IMessageRepository MessageRepository => messageRepository;
+    public DataContext Context => _context;
 
-    public ILikesRepository LikesRepository => likesRepository;
-
-    public IPhotoRepository PhotoRepository => photoRepository;
-
-    public ITagRepository TagRepository => tagRepository;
+    public UnitOfWork(
+        DataContext context,
+        IUserRepository userRepository,
+        ILikesRepository likesRepository,
+        IMessageRepository messageRepository,
+        IPhotoRepository photoRepository,
+        ITagRepository tagRepository)
+    {
+        _context = context;
+        UserRepository = userRepository;
+        LikesRepository = likesRepository;
+        MessageRepository = messageRepository;
+        PhotoRepository = photoRepository;
+        TagRepository = tagRepository;
+    }
 
     public async Task<bool> Complete()
     {
-        return await context.SaveChangesAsync() > 0;
+        return await _context.SaveChangesAsync() > 0;
     }
 
     public bool HasChanges()
     {
-        return context.ChangeTracker.HasChanges();
+        return _context.ChangeTracker.HasChanges();
     }
 }
