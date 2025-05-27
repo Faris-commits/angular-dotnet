@@ -40,35 +40,39 @@
         </select>
       </div>
 
-      <app-button-wrapper type="submit" text="Apply Filters" name="applyBtn">
+      <app-button-wrapper
+        classStyle="btn btn-success btn-lg px-4 py-2 fw-bold shadow-sm"
+        type="submit"
+        text="Apply Filters"
+        name="applyBtn">
       </app-button-wrapper>
 
       <app-button-wrapper
-        classStyle="btn btn-info ms-1"
+        classStyle="btn btn-info btn-lg px-4 py-2 fw-bold shadow-sm ms-1"
         name="resetBtn"
         text="Reset Filters"
-        (clicked)="resetFilters()"></app-button-wrapper>
+        (clicked)="resetFilters()">
+      </app-button-wrapper>
 
       <div class="col">
         <div class="btn-group float-end">
-          <button
-            type="button"
-            class="btn btn-success"
-            name="orderBy"
-            (click)="loadMembers()"
-            btnRadio="lastActive"
+          <app-button-wrapper
+            classStyle="btn btn-success btn-lg px-4 py-2 fw-bold shadow-sm"
+            name="lastActiveBtn"
+            text="Last Active"
+            (clicked)="loadMembers()"
+            [btnRadio]="'lastActive'"
             [(ngModel)]="getUserParams().orderBy">
-            Last Active
-          </button>
-          <button
-            type="button"
-            class="btn btn-info"
-            name="orderBy"
-            (click)="loadMembers()"
-            btnRadio="created"
+          </app-button-wrapper>
+
+          <app-button-wrapper
+            classStyle="btn btn-info btn-lg px-4 py-2 fw-bold shadow-sm ms-1"
+            name="newestMembersBtn"
+            text="Newest Members"
+            (clicked)="loadMembers()"
+            [btnRadio]="'created'"
             [(ngModel)]="getUserParams().orderBy">
-            Newest Members
-          </button>
+          </app-button-wrapper>
         </div>
       </div>
     </form>

@@ -6,12 +6,12 @@ import { NG_VALUE_ACCESSOR } from '@angular/forms';
   standalone: true,
   imports: [],
   templateUrl: './input-wrapper.component.html',
-  styleUrl: './input-wrapper.component.css',
+  styleUrls: ['./input-wrapper.component.css'],
   providers: [
     {
-    provide: NG_VALUE_ACCESSOR,
-    useExisting: forwardRef(() => InputWrapperComponent),
-    multi: true,
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => InputWrapperComponent),
+      multi: true,
     },
   ]
 })
@@ -25,15 +25,15 @@ export class InputWrapperComponent {
   onChange = (value: any) => {};
   onTouched = () => {};
 
-  writeValue(value: any): void{
+  writeValue(value: any): void {
     this.value = value;
   }
 
-  registerOnChange(fn: any): void{
+  registerOnChange(fn: any): void {
     this.onChange = fn;
   }
 
-  registerOnTouched(fn: any): void{
+  registerOnTouched(fn: any): void {
     this.onTouched = fn;
   }
 
@@ -42,5 +42,4 @@ export class InputWrapperComponent {
     this.value = input.value;
     this.onChange(this.value);
   }
-
 }

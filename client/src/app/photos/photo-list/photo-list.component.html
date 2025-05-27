@@ -1,0 +1,8 @@
+<app-photo-tag-selector [(selectedTagIds)]="filterTagIds"></app-photo-tag-selector>
+<button (click)="filterPhotos()">Filter</button>
+<div *ngFor="let photo of photos">
+  <img [src]="photo.url" width="100">
+  <div>
+    Tags: {{ getTagNames(photo) }}
+  </div>
+</div>
