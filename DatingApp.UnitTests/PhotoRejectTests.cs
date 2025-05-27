@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 using CloudinaryDotNet.Actions;
-using System.Threading.Tasks;
 
 namespace DatingApp.Unit.Tests
 {
@@ -23,8 +22,8 @@ namespace DatingApp.Unit.Tests
                 _unitOfWorkMock.Object,
                 _photoServiceMock.Object,
                 _loggerMock.Object,
-                null!, // IMapper not needed here, pass null
-                null!  // DataContext removed, so no need to pass here
+                null!,
+                null!
             );
         }
 

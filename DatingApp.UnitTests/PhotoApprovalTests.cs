@@ -6,8 +6,6 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace DatingApp.Unit.Tests
@@ -24,7 +22,7 @@ namespace DatingApp.Unit.Tests
 
         public PhotoApprovalTests()
         {
-            // Create in-memory EF Core DataContext for testing
+        
             var options = new DbContextOptionsBuilder<DataContext>()
                 .UseInMemoryDatabase(databaseName: "TestDatabase")
                 .Options;
@@ -36,7 +34,7 @@ namespace DatingApp.Unit.Tests
                 _photoServiceMock.Object,
                 _loggerMock.Object,
                 _mapperMock.Object,
-                _context  // Pass real context here!
+                _context  
             );
         }
 
@@ -96,7 +94,7 @@ namespace DatingApp.Unit.Tests
                 Gender = "female",
                 City = "TestCity",
                 Country = "TestCountry",
-                Photos = new List<Photo> { photo } // no main photo
+                Photos = new List<Photo> { photo }
             };
 
             _unitOfWorkMock.Setup(u => u.PhotoRepository.GetPhotoById(1)).ReturnsAsync(photo);
