@@ -1,7 +1,6 @@
 using API.DTOs;
 using API.Helpers;
 using API.Interfaces;
-using Serilog;
 using ILogger = Serilog.ILogger;
 
 namespace API.Services;

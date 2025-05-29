@@ -13,9 +13,9 @@ public class AutoMapperProfiles : Profile
             .ForMember(d => d.Age, o => o.MapFrom(s => s.DateOfBirth.CalculateAge()))
             .ForMember(d => d.PhotoUrl, o =>
                 o.MapFrom(s => s.Photos.FirstOrDefault(x => x.IsMain)!.Url));
-       CreateMap<Photo, PhotoDto>()
-    .ForMember(dest => dest.Tags, opt => opt.MapFrom(src =>
-        src.PhotoTags.Select(pt => new PhotoTagDto { Id = pt.Tag.Id, Name = pt.Tag.Name })));
+        CreateMap<Photo, PhotoDto>()
+     .ForMember(dest => dest.Tags, opt => opt.MapFrom(src =>
+         src.PhotoTags.Select(pt => new PhotoTagDto { Id = pt.Tag.Id, Name = pt.Tag.Name })));
         CreateMap<Photo, PhotoForApprovalDto>()
             .ForMember(dest => dest.Tags, opt => opt.MapFrom(src =>
                 src.PhotoTags.Select(pt => new PhotoTagDto { Id = pt.Tag.Id, Name = pt.Tag.Name })));

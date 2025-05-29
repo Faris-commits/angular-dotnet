@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using API.DTOs;
+﻿using API.DTOs;
 using API.Extensions;
 using API.Interfaces;
 using Microsoft.AspNetCore.Authorization;
