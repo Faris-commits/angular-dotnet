@@ -1,5 +1,4 @@
-﻿using API.Extensions;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 
 namespace API.Entities;
 

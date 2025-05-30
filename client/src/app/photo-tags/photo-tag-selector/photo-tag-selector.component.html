@@ -1,0 +1,28 @@
+<div>
+  <label class="fw-bold">Tags:</label>
+  <div class="mb-2 d-flex">
+    <input
+      type="text"
+      [(ngModel)]="newTagName"
+      placeholder="Add new tag"
+      class="form-control form-control-sm w-auto me-2"
+      (keyup.enter)="addTag()"
+    />
+    <button class="btn btn-primary btn-sm" (click)="addTag()">Add</button>
+  </div>
+  <div *ngIf="tags.length; else noTags">
+    <div *ngFor="let tag of tags">
+      <input
+        type="checkbox"
+        [value]="tag.id"
+        [checked]="selectedTagIds.includes(tag.id)"
+        (change)="toggleTag(tag.id)"
+        id="tag-{{tag.id}}"
+      />
+      <label for="tag-{{tag.id}}">{{ tag.name }}</label>
+    </div>
+  </div>
+  <ng-template #noTags>
+    <span class="text-muted">No tags available.</span>
+  </ng-template>
+</div>

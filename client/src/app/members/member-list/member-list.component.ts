@@ -1,29 +1,36 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { MembersService } from '../../_services/members.service';
-import { MemberCardComponent } from "../member-card/member-card.component";
+import { MemberCardComponent } from '../member-card/member-card.component';
 import { PaginationModule } from 'ngx-bootstrap/pagination';
-import { AccountService } from '../../_services/account.service';
-import { UserParams } from '../../_models/userParams';
 import { FormsModule } from '@angular/forms';
 import { ButtonsModule } from 'ngx-bootstrap/buttons';
+import { InputWrapperComponent } from "../../input-wrapper/input-wrapper/input-wrapper.component";
+import { ButtonWrapperComponent } from "../../button-wrapper/button-wrapper/button-wrapper.component";
 
 @Component({
-    selector: 'app-member-list',
-    standalone: true,
-    templateUrl: './member-list.component.html',
-    styleUrl: './member-list.component.css',
-    imports: [MemberCardComponent, PaginationModule, FormsModule, ButtonsModule]
+  selector: 'app-member-list',
+  standalone: true,
+  imports: [MemberCardComponent, PaginationModule, FormsModule, ButtonsModule, InputWrapperComponent, ButtonWrapperComponent],
+  templateUrl: './member-list.component.html',
+  styleUrl: './member-list.component.css',
 })
 export class MemberListComponent implements OnInit {
-  memberService = inject(MembersService);
-  genderList = [{value: 'male', display: 'Males'}, {value: 'female', display: 'Females'}]
+  private memberService = inject(MembersService);
+  currentPage = 1;
+  genderList = [
+    { value: 'male', display: 'Males' },
+    { value: 'female', display: 'females' },
+  ];
 
   ngOnInit(): void {
     if (!this.memberService.paginatedResult()) this.loadMembers();
   }
 
-  loadMembers() {
-    this.memberService.getMembers();
+  getPaginatedResult() {
+    return this.memberService.paginatedResult();
+  }
+  getUserParams() {
+    return this.memberService.userParams();
   }
 
   resetFilters() {
@@ -31,10 +38,16 @@ export class MemberListComponent implements OnInit {
     this.loadMembers();
   }
 
+  loadMembers() {
+    this.memberService.getMembers();
+  }
+
   pageChanged(event: any) {
-    if (this.memberService.userParams().pageNumber != event.page) {
-      this.memberService.userParams().pageNumber = event.page;
+    if (this.currentPage != event.page) {
+      this.currentPage = event.page;
+      this.getUserParams().pageNumber = this.currentPage;
       this.loadMembers();
     }
   }
+  
 }

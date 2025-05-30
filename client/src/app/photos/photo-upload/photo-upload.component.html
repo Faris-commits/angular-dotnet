@@ -1,0 +1,3 @@
+<input type="file" (change)="onFileSelected($event)">
+<app-photo-tag-selector [(selectedTagIds)]="selectedTagIds"></app-photo-tag-selector>
+<button (click)="uploadPhoto()">Upload</button>

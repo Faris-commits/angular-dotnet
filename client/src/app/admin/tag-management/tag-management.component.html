@@ -1,0 +1,9 @@
+<h2>Tag Management</h2>
+<input [(ngModel)]="newTagName" placeholder="New tag name">
+<button (click)="addTag()">Add Tag</button>
+<ul>
+  <li *ngFor="let tag of tags">
+    {{ tag.name }}
+    <button (click)="deleteTag(tag)">Delete</button>
+  </li>
+</ul>

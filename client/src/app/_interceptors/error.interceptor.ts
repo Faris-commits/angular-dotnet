@@ -17,22 +17,24 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
               const modalStateErrors = [];
               for (const key in error.error.errors) {
                 if (error.error.errors[key]) {
-                  modalStateErrors.push(error.error.errors[key])
+                  modalStateErrors.push(error.error.errors[key]);
                 }
               }
               throw modalStateErrors.flat();
             } else {
-              toastr.error(error.error, error.status)
+              toastr.error(error.error, error.status);
             }
             break;
           case 401:
-            toastr.error('Unauthorised', error.status)
+            toastr.error('Unauthorised', error.status);
             break;
           case 404:
             router.navigateByUrl('/not-found');
             break;
           case 500:
-            const navigationExtras: NavigationExtras = {state: {error: error.error}};
+            const navigationExtras: NavigationExtras = {
+              state: { error: error.error },
+            };
             router.navigateByUrl('/server-error', navigationExtras);
             break;
           default:
@@ -42,5 +44,5 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       }
       throw error;
     })
-  )
+  );
 };
