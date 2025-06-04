@@ -26,18 +26,18 @@ public class AdminService : IAdminService
         _messageRepository = messageRepository;
     }
 
-    public async Task ApprovePhotoAsync(int photoId)
+    public async Task<(bool Success, string Message)> ApprovePhotoAsync(int photoId)
 {
     if (photoId <= 0)
         throw new ArgumentException("Invalid photo ID.", nameof(photoId));
 
-    var photo = await _unitOfWork.PhotoRepository.GetPhotoById(photoId)
+    var photo = await _unitOfWork.PhotoRepository.GetPhotoById(photoId);
         throw new KeyNotFoundException($"Photo with ID {photoId} not found.");
 
     if (photo.IsApproved)
-        return; 
+        return (true, "Photo already approved.");
 
-    var user = await _unitOfWork.UserRepository.GetUserByPhotoId(photoId)
+    var user = await _unitOfWork.UserRepository.GetUserByPhotoId(photoId);
          throw new KeyNotFoundException($"User associated with photo ID {photoId} not found.");
 
     photo.IsApproved = true;
@@ -51,7 +51,7 @@ public class AdminService : IAdminService
 }
 
 
-    public async Task RejectPhotoAsync(int photoId, string reason)
+    public async Task<(bool Success, string Message)> RejectPhotoAsync(int photoId, string reason)
 {
     if (photoId <= 0)
         throw new ArgumentException("Invalid photo ID.", nameof(photoId));
@@ -91,6 +91,8 @@ public class AdminService : IAdminService
     var success = await _unitOfWork.Complete();
     if (!success)
         throw new InvalidOperationException("Failed to save changes while rejecting the photo.");
+
+    return (true, "Photo rejected and deleted successfully.");
 }
 
 
