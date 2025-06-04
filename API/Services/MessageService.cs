@@ -7,32 +7,59 @@ using ILogger = Serilog.ILogger;
 
 namespace API.Services;
 
-public class MessageService(IUnitOfWork unitOfWork, IMapper mapper, ILogger logger) : IMessageService
+public class MessageService(IUnitOfWork unitOfWork, IMapper mapper, ILogger logger)
+    : IMessageService
 {
-    public async Task<MessageDto> CreateMessageAsync(string senderUsername, CreateMessageDto createMessageDto)
+    public async Task<MessageDto> CreateMessageAsync(
+        string senderUsername,
+        CreateMessageDto createMessageDto
+    )
     {
         if (string.IsNullOrWhiteSpace(senderUsername))
-            throw new ArgumentException("Sender username must be provided.", nameof(senderUsername));
+            throw new ArgumentException(
+                "Sender username must be provided.",
+                nameof(senderUsername)
+            );
 
         if (createMessageDto == null)
             throw new ArgumentNullException(nameof(createMessageDto));
 
         if (string.IsNullOrWhiteSpace(createMessageDto.RecipientUsername))
-            throw new ArgumentException("Recipient username must be provided.", nameof(createMessageDto.RecipientUsername));
+            throw new ArgumentException(
+                "Recipient username must be provided.",
+                nameof(createMessageDto.RecipientUsername)
+            );
 
         if (string.IsNullOrWhiteSpace(createMessageDto.Content))
-            throw new ArgumentException("Message content cannot be empty.", nameof(createMessageDto.Content));
+            throw new ArgumentException(
+                "Message content cannot be empty.",
+                nameof(createMessageDto.Content)
+            );
 
-        if (string.Equals(senderUsername, createMessageDto.RecipientUsername, StringComparison.OrdinalIgnoreCase))
+        if (
+            string.Equals(
+                senderUsername,
+                createMessageDto.RecipientUsername,
+                StringComparison.OrdinalIgnoreCase
+            )
+        )
             throw new InvalidOperationException("You cannot send a message to yourself.");
 
         var sender = await unitOfWork.UserRepository.GetUserByUsernameAsync(senderUsername);
         if (sender?.UserName == null)
-            throw new ArgumentException("Sender not found or missing username.", nameof(senderUsername));
+            throw new ArgumentException(
+                "Sender not found or missing username.",
+                nameof(senderUsername)
+            );
 
-        var recipient = await unitOfWork.UserRepository.GetUserByUsernameAsync(createMessageDto.RecipientUsername);
+        var recipient = await unitOfWork.UserRepository.GetUserByUsernameAsync(
+            createMessageDto.RecipientUsername
+        );
         if (recipient?.UserName == null)
-            throw new ArgumentException("Recipient not found or missing username.", nameof(createMessageDto.RecipientUsername));
+            throw new ArgumentException(
+                "Recipient not found or missing username.",
+                nameof(createMessageDto.RecipientUsername)
+            );
 
         var message = new Message
         {
@@ -40,7 +67,7 @@ public class MessageService(IUnitOfWork unitOfWork, IMapper mapper, ILogger logg
             Recipient = recipient,
             SenderUsername = sender.UserName,
             RecipientUsername = recipient.UserName,
-            Content = createMessageDto.Content
+            Content = createMessageDto.Content,
         };
 
         unitOfWork.MessageRepository.AddMessage(message);
@@ -66,14 +93,24 @@ public class MessageService(IUnitOfWork unitOfWork, IMapper mapper, ILogger logg
             if (message == null)
                 throw new Exception("Message not found.");
 
-            var isSender = string.Equals(message.SenderUsername, username, StringComparison.OrdinalIgnoreCase);
-            var isRecipient = string.Equals(message.RecipientUsername, username, StringComparison.OrdinalIgnoreCase);
+            var isSender = string.Equals(
+                message.SenderUsername,
+                username,
+                StringComparison.OrdinalIgnoreCase
+            );
+            var isRecipient = string.Equals(
+                message.RecipientUsername,
+                username,
+                StringComparison.OrdinalIgnoreCase
+            );
 
             if (!isSender && !isRecipient)
                 throw new UnauthorizedAccessException("You are not authorized to delete this");
 
-            if (isSender) message.SenderDeleted = true;
-            if (isRecipient) message.RecipientDeleted = true;
+            if (isSender)
+                message.SenderDeleted = true;
+            if (isRecipient)
+                message.RecipientDeleted = true;
 
             if (message.SenderDeleted && message.RecipientDeleted)
                 unitOfWork.MessageRepository.DeleteMessage(message);
@@ -86,8 +123,12 @@ public class MessageService(IUnitOfWork unitOfWork, IMapper mapper, ILogger logg
         }
         catch (Exception ex)
         {
-
-            Log.Error(ex, "Error deleting message {MessageId} by user {Username}", messageId, username);
+            Log.Error(
+                ex,
+                "Error deleting message {MessageId} by user {Username}",
+                messageId,
+                username
+            );
             throw;
         }
     }
@@ -97,8 +138,14 @@ public class MessageService(IUnitOfWork unitOfWork, IMapper mapper, ILogger logg
         return await unitOfWork.MessageRepository.GetMessagesForUser(messageParams);
     }
 
-    public async Task<IEnumerable<MessageDto>> GetMessageThreadAsync(string currentUsername, string recipientUsername)
+    public async Task<IEnumerable<MessageDto>> GetMessageThreadAsync(
+        string currentUsername,
+        string recipientUsername
+    )
     {
-        return await unitOfWork.MessageRepository.GetMessageThread(currentUsername, recipientUsername);
+        return await unitOfWork.MessageRepository.GetMessageThread(
+            currentUsername,
+            recipientUsername
+        );
     }
 }

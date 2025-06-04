@@ -27,6 +27,5 @@ public class TagRepository(DataContext context) : ITagRepository
         context.Tags.Remove(tag);
     }
 
-    public async Task<bool> SaveAllAsync() =>
-        await context.SaveChangesAsync() > 0;
+    public async Task<bool> SaveAllAsync() => await context.SaveChangesAsync() > 0;
 }

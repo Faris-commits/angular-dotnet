@@ -16,7 +16,12 @@ public class UserRepository : IUserRepository
     private readonly UserManager<AppUser> _userManager;
     private readonly RoleManager<AppRole> _roleManager;
 
-    public UserRepository(DataContext context, IMapper mapper, UserManager<AppUser> userManager, RoleManager<AppRole> roleManager)
+    public UserRepository(
+        DataContext context,
+        IMapper mapper,
+        UserManager<AppUser> userManager,
+        RoleManager<AppRole> roleManager
+    )
     {
         this.context = context;
         this.mapper = mapper;
@@ -32,20 +37,21 @@ public class UserRepository : IUserRepository
 
     public async Task<MemberDto?> GetMemberAsync(string username)
     {
-        return await context.Users
-            .Where(x => x.UserName == username)
+        return await context
+            .Users.Where(x => x.UserName == username)
             .ProjectTo<MemberDto>(mapper.ConfigurationProvider)
             .SingleOrDefaultAsync();
     }
 
     public async Task<MemberDto> GetMemberAsync(string username, bool isCurrentUser)
     {
-        var query = context.Users
-            .Where(x => x.UserName == username)
+        var query = context
+            .Users.Where(x => x.UserName == username)
             .ProjectTo<MemberDto>(mapper.ConfigurationProvider)
             .AsQueryable();
 
-        if (isCurrentUser) query = query.IgnoreQueryFilters();
+        if (isCurrentUser)
+            query = query.IgnoreQueryFilters();
         return await query.FirstOrDefaultAsync();
     }
 
@@ -68,12 +74,14 @@ public class UserRepository : IUserRepository
         query = userParams.OrderBy switch
         {
             "created" => query.OrderByDescending(x => x.Created),
-            _ => query.OrderByDescending(x => x.LastActive)
+            _ => query.OrderByDescending(x => x.LastActive),
         };
 
-        return await PagedList<MemberDto>.CreateAsync(query.ProjectTo<MemberDto>(mapper.ConfigurationProvider),
-            userParams.PageNumber, userParams.PageSize);
-
+        return await PagedList<MemberDto>.CreateAsync(
+            query.ProjectTo<MemberDto>(mapper.ConfigurationProvider),
+            userParams.PageNumber,
+            userParams.PageSize
+        );
     }
 
     public async Task<AppUser?> GetUserByIdAsync(int id)
@@ -83,8 +91,8 @@ public class UserRepository : IUserRepository
 
     public async Task<AppUser?> GetUserByPhotoId(int photoId)
     {
-        return await context.Users
-            .Include(x => x.Photos)
+        return await context
+            .Users.Include(x => x.Photos)
             .IgnoreQueryFilters()
             .Where(x => x.Photos.Any(p => p.Id == photoId))
             .FirstOrDefaultAsync();
@@ -92,10 +100,10 @@ public class UserRepository : IUserRepository
 
     public async Task<AppUser> GetUserByUsernameAsync(string username)
     {
-        return await context.Users
-            .Include(u => u.Photos)
-                .ThenInclude(p => p.PhotoTags)
-                    .ThenInclude(pt => pt.Tag)
+        return await context
+            .Users.Include(u => u.Photos)
+            .ThenInclude(p => p.PhotoTags)
+            .ThenInclude(pt => pt.Tag)
             .SingleOrDefaultAsync(x => x.UserName == username);
     }
 
@@ -106,23 +114,23 @@ public class UserRepository : IUserRepository
 
     public async Task<IEnumerable<AppUser>> GetUsersAsync()
     {
-        return await context.Users
-            .Include(x => x.Photos)
-            .ToListAsync();
+        return await context.Users.Include(x => x.Photos).ToListAsync();
     }
 
     public async Task<IEnumerable<object>> GetUsersWithRolesAsync()
     {
-        return await context.Users
-            .OrderBy(u => u.UserName)
+        return await context
+            .Users.OrderBy(u => u.UserName)
             .Select(u => new
             {
                 u.Id,
                 Username = u.UserName,
-                Roles = (from userRole in context.UserRoles
-                         join role in context.Roles on userRole.RoleId equals role.Id
-                         where userRole.UserId == u.Id
-                         select role.Name).ToList()
+                Roles = (
+                    from userRole in context.UserRoles
+                    join role in context.Roles on userRole.RoleId equals role.Id
+                    where userRole.UserId == u.Id
+                    select role.Name
+                ).ToList(),
             })
             .ToListAsync();
     }

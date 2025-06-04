@@ -5,9 +5,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace API.Data;
 
-public class DataContext(DbContextOptions options) : IdentityDbContext<AppUser, AppRole, int,
-    IdentityUserClaim<int>, AppUserRole, IdentityUserLogin<int>, IdentityRoleClaim<int>,
-    IdentityUserToken<int>>(options)
+public class DataContext(DbContextOptions options)
+    : IdentityDbContext<
+        AppUser,
+        AppRole,
+        int,
+        IdentityUserClaim<int>,
+        AppUserRole,
+        IdentityUserLogin<int>,
+        IdentityRoleClaim<int>,
+        IdentityUserToken<int>
+    >(options)
 {
     public DbSet<UserLike> Likes { get; set; }
     public DbSet<Message> Messages { get; set; }
@@ -23,67 +31,70 @@ public class DataContext(DbContextOptions options) : IdentityDbContext<AppUser, 
     {
         base.OnModelCreating(builder);
 
-        builder.Entity<AppUser>()
+        builder
+            .Entity<AppUser>()
             .HasMany(ur => ur.UserRoles)
             .WithOne(u => u.User)
             .HasForeignKey(ur => ur.UserId)
             .IsRequired();
 
-        builder.Entity<AppRole>()
+        builder
+            .Entity<AppRole>()
             .HasMany(ur => ur.UserRoles)
             .WithOne(u => u.Role)
             .HasForeignKey(ur => ur.RoleId)
             .IsRequired();
 
-        builder.Entity<UserLike>()
-            .HasKey(k => new { k.SourceUserId, k.TargetUserId });
+        builder.Entity<UserLike>().HasKey(k => new { k.SourceUserId, k.TargetUserId });
 
-        builder.Entity<UserLike>()
+        builder
+            .Entity<UserLike>()
             .HasOne(s => s.SourceUser)
             .WithMany(l => l.LikedUsers)
             .HasForeignKey(s => s.SourceUserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.Entity<UserLike>()
+        builder
+            .Entity<UserLike>()
             .HasOne(s => s.TargetUser)
             .WithMany(l => l.LikedByUsers)
             .HasForeignKey(s => s.TargetUserId)
             .OnDelete(DeleteBehavior.NoAction);
 
-        builder.Entity<Message>()
+        builder
+            .Entity<Message>()
             .HasOne(x => x.Recipient)
             .WithMany(x => x.MessagesReceived)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.Entity<Message>()
+        builder
+            .Entity<Message>()
             .HasOne(x => x.Sender)
             .WithMany(x => x.MessagesSent)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.Entity<Photo>()
-        .HasQueryFilter(p => p.IsApproved == true);
+        builder.Entity<Photo>().HasQueryFilter(p => p.IsApproved == true);
 
-        builder.Entity<PhotoTag>()
-            .HasKey(pt => new { pt.PhotoId, pt.TagId });
+        builder.Entity<PhotoTag>().HasKey(pt => new { pt.PhotoId, pt.TagId });
 
-        builder.Entity<PhotoTag>()
+        builder
+            .Entity<PhotoTag>()
             .HasOne(pt => pt.Photo)
             .WithMany(p => p.PhotoTags)
             .HasForeignKey(pt => pt.PhotoId);
 
-        builder.Entity<PhotoTag>()
+        builder
+            .Entity<PhotoTag>()
             .HasOne(pt => pt.Tag)
             .WithMany(t => t.PhotoTags)
             .HasForeignKey(pt => pt.TagId);
 
-        builder.Entity<Tag>()
-            .HasIndex(t => t.Name)
-            .IsUnique();
+        builder.Entity<Tag>().HasIndex(t => t.Name).IsUnique();
 
         builder.Entity<PhotoApprovalStats>().HasNoKey();
         builder.Entity<UserWithoutMainPhotoDto>(entity =>
-{
-    entity.HasNoKey();
-});
+        {
+            entity.HasNoKey();
+        });
     }
 }

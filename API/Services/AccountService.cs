@@ -15,8 +15,12 @@ public class AccountService : IAccountService
 
     private readonly ILogger<AccountService> _logger;
 
-    public AccountService(UserManager<AppUser> userManager, ITokenService tokenService,
-     IMapper mapper, ILogger<AccountService> logger)
+    public AccountService(
+        UserManager<AppUser> userManager,
+        ITokenService tokenService,
+        IMapper mapper,
+        ILogger<AccountService> logger
+    )
     {
         _userManager = userManager;
         _tokenService = tokenService;
@@ -24,19 +28,17 @@ public class AccountService : IAccountService
         _logger = logger;
     }
 
-
     public async Task<UserDto> LoginAsync(LoginDto loginDto)
     {
         _logger.LogDebug("LoginAsync for user: {username}", loginDto.Username);
-        var user = await _userManager.Users
-            .Include(p => p.Photos)
-                .FirstOrDefaultAsync(x =>
-                    x.NormalizedUserName == loginDto.Username.ToUpper());
+        var user = await _userManager
+            .Users.Include(p => p.Photos)
+            .FirstOrDefaultAsync(x => x.NormalizedUserName == loginDto.Username.ToUpper());
 
-        if (user == null) throw new Exception("User is not found");
+        if (user == null)
+            throw new Exception("User is not found");
 
         _logger.LogInformation("User logged in successfully: {Username}", loginDto.Username);
-
 
         return new UserDto
         {
@@ -44,7 +46,7 @@ public class AccountService : IAccountService
             KnownAs = user.KnownAs,
             Token = await _tokenService.CreateToken(user),
             Gender = user.Gender,
-            PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url
+            PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url,
         };
     }
 
@@ -54,7 +56,6 @@ public class AccountService : IAccountService
 
         if (await UserExistsAsync(registerDto.Username))
         {
-
             throw new Exception("Failed to register, user already exists");
         }
 
@@ -74,7 +75,7 @@ public class AccountService : IAccountService
             Username = user.UserName,
             Token = await _tokenService.CreateToken(user),
             KnownAs = user.KnownAs,
-            Gender = user.Gender
+            Gender = user.Gender,
         };
     }
 
@@ -83,5 +84,3 @@ public class AccountService : IAccountService
         return _userManager.Users.AnyAsync(x => x.NormalizedUserName == username.ToUpper());
     }
 }
-
-

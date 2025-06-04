@@ -6,12 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
 
-
-
 [Authorize]
-public class MessagesController(IMessageService messageService, ILogger<MessagesController> _logger) : BaseApiController
+public class MessagesController(IMessageService messageService, ILogger<MessagesController> _logger)
+    : BaseApiController
 {
-
     /// <summary>
     /// POST /api/messages
     /// </summary>
@@ -28,18 +26,20 @@ public class MessagesController(IMessageService messageService, ILogger<Messages
     {
         try
         {
-            _logger.LogDebug($"MessagesController - {nameof(CreateMessage)} invoked. (createMessageDto: {createMessageDto})");
+            _logger.LogDebug(
+                $"MessagesController - {nameof(CreateMessage)} invoked. (createMessageDto: {createMessageDto})"
+            );
             var username = User.GetUsername();
-           var message = await messageService.CreateMessageAsync(username, createMessageDto);
+            var message = await messageService.CreateMessageAsync(username, createMessageDto);
             return Ok(message);
         }
         catch (Exception ex)
         {
-
             _logger.LogError(ex, "Exception in MessagesController.CreateMessage");
             throw;
         }
     }
+
     /// <summary>
     /// GET /api/messages?container={messageParams}
     /// </summary>
@@ -53,24 +53,26 @@ public class MessagesController(IMessageService messageService, ILogger<Messages
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [ProducesErrorResponseType(typeof(void))]
     public async Task<ActionResult<IEnumerable<MessageDto>>> GetMessagesForUser(
-        [FromQuery] MessageParams messageParams)
+        [FromQuery] MessageParams messageParams
+    )
     {
         try
         {
-            _logger.LogDebug($"MessagesController - {nameof(GetMessagesForUser)} invoked. (messageParams: {messageParams})");
+            _logger.LogDebug(
+                $"MessagesController - {nameof(GetMessagesForUser)} invoked. (messageParams: {messageParams})"
+            );
             messageParams.Username = User.GetUsername();
             var messages = await messageService.GetMessagesForUserAsync(messageParams);
             Response.AddPaginationHeader(messages);
             return Ok(messages);
-
         }
         catch (Exception ex)
         {
-
             _logger.LogError(ex, "Exception in MessagesController.GetMessagesForUser");
             throw;
         }
     }
+
     /// <summary>
     /// GET /api/messages/thread/{username}
     /// </summary>
@@ -87,18 +89,20 @@ public class MessagesController(IMessageService messageService, ILogger<Messages
     {
         try
         {
-            _logger.LogDebug($"MessagesController - {nameof(GetMessageThread)} invoked. (username: {username})");
+            _logger.LogDebug(
+                $"MessagesController - {nameof(GetMessageThread)} invoked. (username: {username})"
+            );
             var currentUsername = User.GetUsername();
             var thread = await messageService.GetMessageThreadAsync(currentUsername, username);
             return Ok(thread);
         }
         catch (Exception ex)
         {
-
             _logger.LogError(ex, "Exception in MessagesController.GetMessageThread");
             throw;
         }
     }
+
     /// <summary>
     /// DELETE /api/messages/{id}
     /// </summary>
@@ -122,7 +126,6 @@ public class MessagesController(IMessageService messageService, ILogger<Messages
         }
         catch (Exception ex)
         {
-
             _logger.LogError(ex, "Exception in MessagesController.DeleteMessage");
             throw;
         }

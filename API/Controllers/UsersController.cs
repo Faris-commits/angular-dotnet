@@ -9,7 +9,11 @@ using Microsoft.AspNetCore.Mvc;
 namespace API.Controllers;
 
 [Authorize]
-public class UsersController(IUsersService usersService, ILogger<UsersController> logger, IUnitOfWork unitOfWork) : BaseApiController
+public class UsersController(
+    IUsersService usersService,
+    ILogger<UsersController> logger,
+    IUnitOfWork unitOfWork
+) : BaseApiController
 {
     private readonly IUsersService _usersService = usersService;
     private readonly ILogger<UsersController> _logger = logger;
@@ -27,11 +31,15 @@ public class UsersController(IUsersService usersService, ILogger<UsersController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [ProducesErrorResponseType(typeof(void))]
-    public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers([FromQuery] UserParams userParams)
+    public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers(
+        [FromQuery] UserParams userParams
+    )
     {
         try
         {
-            _logger.LogDebug($"UsersController - {nameof(GetUsers)} invoked. (userParams: {userParams})");
+            _logger.LogDebug(
+                $"UsersController - {nameof(GetUsers)} invoked. (userParams: {userParams})"
+            );
             var currentUsername = User.GetUsername();
             var users = await _usersService.GetUsersAsync(userParams, currentUsername);
             Response.AddPaginationHeader(users);
@@ -39,10 +47,8 @@ public class UsersController(IUsersService usersService, ILogger<UsersController
         }
         catch (Exception ex)
         {
-
             _logger.LogError(ex, "Exception in UsersController.GetUsers");
             throw;
-
         }
     }
 
@@ -69,12 +75,11 @@ public class UsersController(IUsersService usersService, ILogger<UsersController
         }
         catch (Exception ex)
         {
-
             _logger.LogError(ex, "Exception in UsersController.GetUser");
             throw;
         }
-
     }
+
     /// <summary>
     /// PUT /api/users
     /// </summary>
@@ -91,17 +96,19 @@ public class UsersController(IUsersService usersService, ILogger<UsersController
     {
         try
         {
-            _logger.LogDebug($"UsersController - {nameof(UpdateUser)} invoked. (MemberUpdateDto: {memberUpdateDto})");
+            _logger.LogDebug(
+                $"UsersController - {nameof(UpdateUser)} invoked. (MemberUpdateDto: {memberUpdateDto})"
+            );
             await _usersService.UpdateUserAsync(User.GetUsername(), memberUpdateDto);
             return Ok();
         }
         catch (Exception ex)
         {
-
             _logger.LogError(ex, "Exception in UsersController.UpdateUser");
             throw;
         }
     }
+
     /// <summary>
     /// POST /api/users/add-photo
     /// </summary>
@@ -124,10 +131,8 @@ public class UsersController(IUsersService usersService, ILogger<UsersController
         }
         catch (Exception ex)
         {
-
             _logger.LogError(ex, "Exception in UsersController.AddPhoto");
             throw;
-
         }
     }
 
@@ -147,14 +152,14 @@ public class UsersController(IUsersService usersService, ILogger<UsersController
     {
         try
         {
-            _logger.LogDebug($"UsersController - {nameof(SetMainPhoto)} invoked. (photoId: {photoId})");
+            _logger.LogDebug(
+                $"UsersController - {nameof(SetMainPhoto)} invoked. (photoId: {photoId})"
+            );
             await _usersService.SetMainPhotoAsync(User.GetUsername(), photoId);
             return NoContent();
-
         }
         catch (Exception ex)
         {
-
             _logger.LogError(ex, "Exception in UsersController.SetMainPhoto");
             throw;
         }
@@ -176,13 +181,14 @@ public class UsersController(IUsersService usersService, ILogger<UsersController
     {
         try
         {
-            _logger.LogDebug($"UsersController - {nameof(DeletePhoto)} invoked. (photoId: {photoId})");
+            _logger.LogDebug(
+                $"UsersController - {nameof(DeletePhoto)} invoked. (photoId: {photoId})"
+            );
             var success = await _usersService.DeletePhotoAsync(User.GetUsername(), photoId);
             return Ok();
         }
         catch (Exception ex)
         {
-
             _logger.LogError(ex, "Exception in UsersController.DeletePhoto");
             throw;
         }
@@ -240,7 +246,11 @@ public class UsersController(IUsersService usersService, ILogger<UsersController
             await _unitOfWork.TagRepository.AddTagAsync(tag);
             await _unitOfWork.Complete();
 
-            _logger.LogInformation("Tag '{TagName}' created successfully with ID {TagId}.", dto.Name, tag.Id);
+            _logger.LogInformation(
+                "Tag '{TagName}' created successfully with ID {TagId}.",
+                dto.Name,
+                tag.Id
+            );
             return Ok(new PhotoTagDto { Id = tag.Id, Name = tag.Name });
         }
         catch (Exception ex)
@@ -273,7 +283,11 @@ public class UsersController(IUsersService usersService, ILogger<UsersController
                 return NotFound("No photos found for the specified tag.");
             }
 
-            _logger.LogInformation("{Count} photos retrieved for tag ID {TagId}.", photos.Count(), tagId);
+            _logger.LogInformation(
+                "{Count} photos retrieved for tag ID {TagId}.",
+                photos.Count(),
+                tagId
+            );
             return Ok(photos);
         }
         catch (Exception ex)
@@ -298,12 +312,21 @@ public class UsersController(IUsersService usersService, ILogger<UsersController
     {
         try
         {
-            _logger.LogDebug("UsersController - SetPhotoTags invoked (photoId: {PhotoId}, tagIds: {TagIds})", photoId, tagIds);
+            _logger.LogDebug(
+                "UsersController - SetPhotoTags invoked (photoId: {PhotoId}, tagIds: {TagIds})",
+                photoId,
+                tagIds
+            );
 
             var username = User.GetUsername();
             await _usersService.SetPhotoTagsAsync(username, photoId, tagIds);
 
-            _logger.LogInformation("Tags {TagIds} assigned to photo ID {PhotoId} by user {Username}.", tagIds, photoId, username);
+            _logger.LogInformation(
+                "Tags {TagIds} assigned to photo ID {PhotoId} by user {Username}.",
+                tagIds,
+                photoId,
+                username
+            );
             return Ok();
         }
         catch (Exception ex)
@@ -346,5 +369,3 @@ public class UsersController(IUsersService usersService, ILogger<UsersController
         }
     }
 }
-
-

@@ -5,7 +5,6 @@ namespace API.Interfaces;
 
 public interface IUsersService
 {
-
     Task<PagedList<MemberDto>> GetUsersAsync(UserParams userParams, string currentUsername);
     Task<MemberDto> GetUserAsync(string username, string currentUsername);
 
@@ -20,5 +19,4 @@ public interface IUsersService
     Task SetPhotoTagsAsync(string username, int photoId, List<int> tagIds);
     Task<bool> DeleteTagAsync(int tagId);
     Task<IEnumerable<PhotoDto>> GetPhotosByTagAsync(int tagId);
-
 }

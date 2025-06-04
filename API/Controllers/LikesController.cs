@@ -10,7 +10,6 @@ namespace API;
 [Route("api/[controller]")]
 public class LikesController : ControllerBase
 {
-
     private readonly ILikesService _likesService;
     private readonly ILogger<LikesController> _logger;
 
@@ -18,7 +17,6 @@ public class LikesController : ControllerBase
     {
         _likesService = likesService;
         _logger = logger;
-
     }
 
     /// <summary>
@@ -37,18 +35,18 @@ public class LikesController : ControllerBase
     {
         try
         {
-            _logger.LogDebug($"LikesController - {nameof(ToggleLike)} invoke. (targetUserId: {targetUserId})");
+            _logger.LogDebug(
+                $"LikesController - {nameof(ToggleLike)} invoke. (targetUserId: {targetUserId})"
+            );
             var sourceUserId = User.GetUserId();
             await _likesService.ToggleLikeAsync(sourceUserId, targetUserId);
             return Ok();
         }
         catch (Exception ex)
         {
-
             _logger.LogError(ex, "Exception in LikesController.ToggleLike");
             throw;
         }
-
     }
 
     /// <summary>
@@ -73,14 +71,11 @@ public class LikesController : ControllerBase
         }
         catch (Exception ex)
         {
-
             _logger.LogError(ex, "Exception in GetCurrentUserLikeIds");
             throw;
         }
-
-
-
     }
+
     /// <summary>
     /// GET  /api/likes?predicate={likesParams}
     /// </summary>
@@ -93,11 +88,15 @@ public class LikesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [ProducesErrorResponseType(typeof(void))]
-    public async Task<ActionResult<IEnumerable<MemberDto>>> GetUserLikes([FromQuery] LikesParams likesParams)
+    public async Task<ActionResult<IEnumerable<MemberDto>>> GetUserLikes(
+        [FromQuery] LikesParams likesParams
+    )
     {
         try
         {
-            _logger.LogDebug($"LikesController - {nameof(GetUserLikes)} invoke. (likesParams: {likesParams})");
+            _logger.LogDebug(
+                $"LikesController - {nameof(GetUserLikes)} invoke. (likesParams: {likesParams})"
+            );
             likesParams.UserId = User.GetUserId();
             var users = await _likesService.GetUserLikesAsync(likesParams);
             Response.AddPaginationHeader(users);
@@ -105,7 +104,6 @@ public class LikesController : ControllerBase
         }
         catch (Exception ex)
         {
-
             _logger.LogError(ex, "Exception in LikesController.GetUserLikes");
             throw;
         }

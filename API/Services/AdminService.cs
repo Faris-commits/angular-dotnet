@@ -16,7 +16,14 @@ public class AdminService : IAdminService
     private readonly DataContext _context;
     private readonly IMessageRepository _messageRepository;
 
-    public AdminService(IUnitOfWork unitOfWork, IPhotoService photoService, ILogger<AdminService> logger, IMapper mapper, DataContext context, IMessageRepository messageRepository)
+    public AdminService(
+        IUnitOfWork unitOfWork,
+        IPhotoService photoService,
+        ILogger<AdminService> logger,
+        IMapper mapper,
+        DataContext context,
+        IMessageRepository messageRepository
+    )
     {
         _unitOfWork = unitOfWork;
         _photoService = photoService;
@@ -27,76 +34,88 @@ public class AdminService : IAdminService
     }
 
     public async Task<(bool Success, string Message)> ApprovePhotoAsync(int photoId)
-{
-    if (photoId <= 0)
-        throw new ArgumentException("Invalid photo ID.", nameof(photoId));
+    {
+        if (photoId <= 0)
+            throw new ArgumentException("Invalid photo ID.", nameof(photoId));
 
-    var photo = await _unitOfWork.PhotoRepository.GetPhotoById(photoId);
+        var photo = await _unitOfWork.PhotoRepository.GetPhotoById(photoId);
         throw new KeyNotFoundException($"Photo with ID {photoId} not found.");
 
-    if (photo.IsApproved)
-        return (true, "Photo already approved.");
+        if (photo.IsApproved)
+            return (true, "Photo already approved.");
 
-    var user = await _unitOfWork.UserRepository.GetUserByPhotoId(photoId);
-         throw new KeyNotFoundException($"User associated with photo ID {photoId} not found.");
+        var user = await _unitOfWork.UserRepository.GetUserByPhotoId(photoId);
+        throw new KeyNotFoundException($"User associated with photo ID {photoId} not found.");
 
-    photo.IsApproved = true;
+        photo.IsApproved = true;
 
-    if (!user.Photos.Any(p => p.IsMain))
-        photo.IsMain = true;
+        if (!user.Photos.Any(p => p.IsMain))
+            photo.IsMain = true;
 
-    var success = await _unitOfWork.Complete();
-    if (!success)
-        throw new InvalidOperationException("Failed to save changes while approving the photo.");
-}
-
-
-    public async Task<(bool Success, string Message)> RejectPhotoAsync(int photoId, string reason)
-{
-    if (photoId <= 0)
-        throw new ArgumentException("Invalid photo ID.", nameof(photoId));
-
-    if (string.IsNullOrWhiteSpace(reason))
-        throw new ArgumentException("Rejection reason is required.", nameof(reason));
-
-    var photo = await _unitOfWork.PhotoRepository.GetPhotoById(photoId)
-        ?? throw new KeyNotFoundException($"Photo with ID {photoId} not found.");
-
-    var user = await _unitOfWork.UserRepository.GetUserByPhotoId(photoId)
-        ?? throw new KeyNotFoundException($"User associated with photo ID {photoId} not found.");
-
-    if (!string.IsNullOrEmpty(photo.PublicId))
-    {
-        var result = await _photoService.DeletePhotoAsync(photo.PublicId);
-        if (result.StatusCode != System.Net.HttpStatusCode.OK)
-            throw new InvalidOperationException("Failed to delete photo from external storage.");
+        var success = await _unitOfWork.Complete();
+        if (!success)
+            throw new InvalidOperationException(
+                "Failed to save changes while approving the photo."
+            );
     }
 
-    _unitOfWork.PhotoRepository.RemovePhoto(photo);
-
-    var adminUser = await _context.Users.FirstOrDefaultAsync(u => u.UserName == "admin")
-        ?? throw new InvalidOperationException("Admin user not found.");
-
-    var message = new Message
+    public async Task<(bool Success, string Message)> RejectPhotoAsync(int photoId, string reason)
     {
-        SenderId = adminUser.Id,
-        SenderUsername = adminUser.UserName,
-        RecipientId = user.Id,
-        RecipientUsername = user.UserName,
-        Content = $"Your photo was rejected by an admin. Reason: {reason}"
-    };
+        if (photoId <= 0)
+            throw new ArgumentException("Invalid photo ID.", nameof(photoId));
 
-    _messageRepository.AddMessage(message);
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new ArgumentException("Rejection reason is required.", nameof(reason));
 
-    var success = await _unitOfWork.Complete();
-    if (!success)
-        throw new InvalidOperationException("Failed to save changes while rejecting the photo.");
+        var photo =
+            await _unitOfWork.PhotoRepository.GetPhotoById(photoId)
+            ?? throw new KeyNotFoundException($"Photo with ID {photoId} not found.");
 
-    return (true, "Photo rejected and deleted successfully.");
-}
+        var user =
+            await _unitOfWork.UserRepository.GetUserByPhotoId(photoId)
+            ?? throw new KeyNotFoundException(
+                $"User associated with photo ID {photoId} not found."
+            );
 
+        if (!string.IsNullOrEmpty(photo.PublicId))
+        {
+            var result = await _photoService.DeletePhotoAsync(photo.PublicId);
+            if (result.StatusCode != System.Net.HttpStatusCode.OK)
+                throw new InvalidOperationException(
+                    "Failed to delete photo from external storage."
+                );
+        }
 
-    public async Task<(bool Success, IEnumerable<string> Roles)> EditRolesAsync(string username, string roles)
+        _unitOfWork.PhotoRepository.RemovePhoto(photo);
+
+        var adminUser =
+            await _context.Users.FirstOrDefaultAsync(u => u.UserName == "admin")
+            ?? throw new InvalidOperationException("Admin user not found.");
+
+        var message = new Message
+        {
+            SenderId = adminUser.Id,
+            SenderUsername = adminUser.UserName,
+            RecipientId = user.Id,
+            RecipientUsername = user.UserName,
+            Content = $"Your photo was rejected by an admin. Reason: {reason}",
+        };
+
+        _messageRepository.AddMessage(message);
+
+        var success = await _unitOfWork.Complete();
+        if (!success)
+            throw new InvalidOperationException(
+                "Failed to save changes while rejecting the photo."
+            );
+
+        return (true, "Photo rejected and deleted successfully.");
+    }
+
+    public async Task<(bool Success, IEnumerable<string> Roles)> EditRolesAsync(
+        string username,
+        string roles
+    )
     {
         if (string.IsNullOrWhiteSpace(username))
             throw new ArgumentException("Username cannot be null or empty.", nameof(username));
@@ -104,7 +123,10 @@ public class AdminService : IAdminService
         if (string.IsNullOrWhiteSpace(roles))
             throw new ArgumentException("Roles cannot be null or empty.", nameof(roles));
 
-        var selectedRoles = roles.Split(",", StringSplitOptions.RemoveEmptyEntries).Select(r => r.Trim()).ToArray();
+        var selectedRoles = roles
+            .Split(",", StringSplitOptions.RemoveEmptyEntries)
+            .Select(r => r.Trim())
+            .ToArray();
         if (!selectedRoles.Any())
             throw new ArgumentException("At least one role must be selected.", nameof(roles));
 
@@ -120,7 +142,10 @@ public class AdminService : IAdminService
             throw new InvalidOperationException("Failed to add roles to the user.");
 
         var rolesToRemove = currentRoles.Except(selectedRoles).ToArray();
-        var removeResult = await _unitOfWork.UserRepository.RemoveFromRolesAsync(user, rolesToRemove);
+        var removeResult = await _unitOfWork.UserRepository.RemoveFromRolesAsync(
+            user,
+            rolesToRemove
+        );
         if (!removeResult)
             throw new InvalidOperationException("Failed to remove roles from the user.");
 
@@ -128,7 +153,10 @@ public class AdminService : IAdminService
         return (true, updatedRoles);
     }
 
-    public async Task<(IEnumerable<PhotoForApprovalDto> Photos, string Message)> GetPhotosForModerationAsync()
+    public async Task<(
+        IEnumerable<PhotoForApprovalDto> Photos,
+        string Message
+    )> GetPhotosForModerationAsync()
     {
         _logger.LogDebug("AdminService - GetPhotosForModerationAsync invoked");
 
@@ -136,7 +164,10 @@ public class AdminService : IAdminService
         if (photos == null || !photos.Any())
         {
             _logger.LogInformation("No photos need moderation at this time.");
-            return (Enumerable.Empty<PhotoForApprovalDto>(), "No photos need moderation at this time.");
+            return (
+                Enumerable.Empty<PhotoForApprovalDto>(),
+                "No photos need moderation at this time."
+            );
         }
 
         var photoDtos = photos.Select(p => _mapper.Map<PhotoForApprovalDto>(p));
@@ -174,7 +205,10 @@ public class AdminService : IAdminService
         if (string.IsNullOrWhiteSpace(tagName))
             throw new ArgumentException("Tag name cannot be empty.", nameof(tagName));
 
-        _logger.LogDebug("AdminService - CreatePhotoTagAsync invoked (tagName: {TagName})", tagName);
+        _logger.LogDebug(
+            "AdminService - CreatePhotoTagAsync invoked (tagName: {TagName})",
+            tagName
+        );
 
         var existing = await _unitOfWork.TagRepository.GetTagByNameAsync(tagName.Trim());
         if (existing != null)
@@ -184,7 +218,11 @@ public class AdminService : IAdminService
         await _unitOfWork.TagRepository.AddTagAsync(tag);
         await _unitOfWork.TagRepository.SaveAllAsync();
 
-        _logger.LogInformation("Tag '{TagName}' created successfully with ID {TagId}.", tagName, tag.Id);
+        _logger.LogInformation(
+            "Tag '{TagName}' created successfully with ID {TagId}.",
+            tagName,
+            tag.Id
+        );
         return _mapper.Map<PhotoTagDto>(tag);
     }
 
@@ -212,7 +250,11 @@ public class AdminService : IAdminService
 
     public async Task<PhotoTagDto?> AddTagToPhotoAsync(int photoId, int tagId)
     {
-        _logger.LogDebug("AdminService - AddTagToPhotoAsync invoked (photoId: {PhotoId}, tagId: {TagId})", photoId, tagId);
+        _logger.LogDebug(
+            "AdminService - AddTagToPhotoAsync invoked (photoId: {PhotoId}, tagId: {TagId})",
+            photoId,
+            tagId
+        );
 
         var photo = await _unitOfWork.PhotoRepository.GetPhotoById(photoId);
         if (photo == null)
@@ -227,20 +269,32 @@ public class AdminService : IAdminService
 
         if (photo.PhotoTags.Any(pt => pt.TagId == tagId))
         {
-            _logger.LogInformation("Tag with ID {TagId} is already assigned to photo with ID {PhotoId}.", tagId, photoId);
+            _logger.LogInformation(
+                "Tag with ID {TagId} is already assigned to photo with ID {PhotoId}.",
+                tagId,
+                photoId
+            );
             return _mapper.Map<PhotoTagDto>(tag);
         }
 
         photo.PhotoTags.Add(new PhotoTag { PhotoId = photoId, TagId = tagId });
         await _unitOfWork.Complete();
 
-        _logger.LogInformation("Tag with ID {TagId} added to photo with ID {PhotoId}.", tagId, photoId);
+        _logger.LogInformation(
+            "Tag with ID {TagId} added to photo with ID {PhotoId}.",
+            tagId,
+            photoId
+        );
         return _mapper.Map<PhotoTagDto>(tag);
     }
 
     public async Task<bool> RemoveTagFromPhotoAsync(int photoId, int tagId)
     {
-        _logger.LogDebug("AdminService - RemoveTagFromPhotoAsync invoked (photoId: {PhotoId}, tagId: {TagId})", photoId, tagId);
+        _logger.LogDebug(
+            "AdminService - RemoveTagFromPhotoAsync invoked (photoId: {PhotoId}, tagId: {TagId})",
+            photoId,
+            tagId
+        );
 
         var photo = await _unitOfWork.PhotoRepository.GetPhotoById(photoId);
         if (photo == null || photo.PhotoTags == null)
@@ -252,34 +306,43 @@ public class AdminService : IAdminService
         var photoTag = photo.PhotoTags.FirstOrDefault(pt => pt.TagId == tagId);
         if (photoTag == null)
         {
-            _logger.LogWarning("Tag with ID {TagId} not found on photo with ID {PhotoId}.", tagId, photoId);
+            _logger.LogWarning(
+                "Tag with ID {TagId} not found on photo with ID {PhotoId}.",
+                tagId,
+                photoId
+            );
             return false;
         }
 
         photo.PhotoTags.Remove(photoTag);
         await _unitOfWork.Complete();
 
-        _logger.LogInformation("Tag with ID {TagId} removed from photo with ID {PhotoId}.", tagId, photoId);
+        _logger.LogInformation(
+            "Tag with ID {TagId} removed from photo with ID {PhotoId}.",
+            tagId,
+            photoId
+        );
         return true;
     }
+
     public async Task<IEnumerable<PhotoApprovalStatsDto>> GetPhotoApprovalStatsAsync()
     {
-        var stats = await _context.PhotoApprovalStats
-            .FromSqlRaw("EXEC GetPhotoApprovalStats")
+        var stats = await _context
+            .PhotoApprovalStats.FromSqlRaw("EXEC GetPhotoApprovalStats")
             .ToListAsync();
 
         return stats.Select(p => new PhotoApprovalStatsDto
         {
             Username = p.Username,
             ApprovedPhotos = p.ApprovedPhotos,
-            UnapprovedPhotos = p.UnapprovedPhotos
+            UnapprovedPhotos = p.UnapprovedPhotos,
         });
     }
 
     public async Task<IEnumerable<string>> GetUsersWithoutMainPhotoAsync()
     {
-        var users = await _context.UsersWithoutMainPhoto
-            .FromSqlRaw("EXEC GetUsersWithoutMainPhoto")
+        var users = await _context
+            .UsersWithoutMainPhoto.FromSqlRaw("EXEC GetUsersWithoutMainPhoto")
             .AsNoTracking()
             .ToListAsync();
 

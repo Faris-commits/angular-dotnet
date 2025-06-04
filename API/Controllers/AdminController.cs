@@ -14,9 +14,8 @@ public class AdminController(
     IPhotoService photoService,
     IAdminService adminService,
     ILogger<AdminController> _logger
-    ) : BaseApiController
+) : BaseApiController
 {
-
     /// <summary>
     /// GET /api/admin/users-with-roles
     /// </summary>
@@ -44,6 +43,7 @@ public class AdminController(
             throw;
         }
     }
+
     /// <summary>
     /// POST /api/admin/edit-roles/{username}
     /// </summary>
@@ -62,7 +62,9 @@ public class AdminController(
     {
         try
         {
-            _logger.LogDebug($"AdminController - {nameof(EditRoles)} invoked (username: {username}, roles: {roles})");
+            _logger.LogDebug(
+                $"AdminController - {nameof(EditRoles)} invoked (username: {username}, roles: {roles})"
+            );
             var updatedRoles = await adminService.EditRolesAsync(username, roles);
             return Ok(updatedRoles);
         }
@@ -72,6 +74,7 @@ public class AdminController(
             throw;
         }
     }
+
     /// <summary>
     /// GET /api/admin/photos-to-moderate
     /// </summary>
@@ -99,6 +102,7 @@ public class AdminController(
             throw;
         }
     }
+
     /// <summary>
     /// POST /api/approve-photo/{photoId}
     /// </summary>
@@ -116,39 +120,43 @@ public class AdminController(
     {
         try
         {
-            _logger.LogDebug($"AdminController - {nameof(ApprovePhoto)} invoked. (photoId: {photoId})");
+            _logger.LogDebug(
+                $"AdminController - {nameof(ApprovePhoto)} invoked. (photoId: {photoId})"
+            );
             await adminService.ApprovePhotoAsync(photoId);
             return Ok(photoId);
         }
         catch (Exception ex)
         {
-
             _logger.LogError(ex, "Exception in AdminController.ApprovePhoto");
             throw;
         }
     }
-/// <summary>
-/// POST /api/admin/reject-photo/{photoId}
-/// </summary>
-/// <param name="photoId"></param>
-/// <param name="dto"></param>
-/// <returns></returns>
-[Authorize(Policy = "ModeratePhotoRole")]
-[HttpPost("reject-photo/{photoId}")]
-public async Task<ActionResult> RejectPhoto(int photoId, [FromBody] PhotoRejectionDto dto)
-{
-    try
+
+    /// <summary>
+    /// POST /api/admin/reject-photo/{photoId}
+    /// </summary>
+    /// <param name="photoId"></param>
+    /// <param name="dto"></param>
+    /// <returns></returns>
+    [Authorize(Policy = "ModeratePhotoRole")]
+    [HttpPost("reject-photo/{photoId}")]
+    public async Task<ActionResult> RejectPhoto(int photoId, [FromBody] PhotoRejectionDto dto)
     {
-        _logger.LogDebug($"AdminController - {nameof(RejectPhoto)} invoked. (photoId: {photoId})");
-        await adminService.RejectPhotoAsync(photoId, dto.Reason);
-        return Ok(photoId);
+        try
+        {
+            _logger.LogDebug(
+                $"AdminController - {nameof(RejectPhoto)} invoked. (photoId: {photoId})"
+            );
+            await adminService.RejectPhotoAsync(photoId, dto.Reason);
+            return Ok(photoId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception in AdminController-RejectPhoto");
+            return StatusCode(500, "An error occurred while rejecting the photo .");
+        }
     }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Exception in AdminController-RejectPhoto");
-        return StatusCode(500, "An error occurred while rejecting the photo .");
-    }
-}
 
     /// <summary>
     /// GET /api/admin/photo-tags
@@ -189,7 +197,10 @@ public async Task<ActionResult> RejectPhoto(int photoId, [FromBody] PhotoRejecti
     {
         try
         {
-            _logger.LogDebug("AdminController - CreatePhotoTag invoked (tagName: {tagName})", dto.Name);
+            _logger.LogDebug(
+                "AdminController - CreatePhotoTag invoked (tagName: {tagName})",
+                dto.Name
+            );
             var tag = await adminService.CreatePhotoTagAsync(dto.Name);
             return Ok(tag);
         }
@@ -217,7 +228,8 @@ public async Task<ActionResult> RejectPhoto(int photoId, [FromBody] PhotoRejecti
         {
             _logger.LogDebug("AdminController - DeletePhotoTag invoked (tagId: {tagId})", tagId);
             var result = await adminService.DeletePhotoTagAsync(tagId);
-            if (!result) return NotFound();
+            if (!result)
+                return NotFound();
             return Ok();
         }
         catch (Exception ex)
@@ -243,9 +255,14 @@ public async Task<ActionResult> RejectPhoto(int photoId, [FromBody] PhotoRejecti
     {
         try
         {
-            _logger.LogDebug("AdminController - AddTagToPhoto invoked (photoId: {photoId}, tagId: {tagId})", photoId, tagId);
+            _logger.LogDebug(
+                "AdminController - AddTagToPhoto invoked (photoId: {photoId}, tagId: {tagId})",
+                photoId,
+                tagId
+            );
             var tag = await adminService.AddTagToPhotoAsync(photoId, tagId);
-            if (tag == null) return BadRequest("Could not add tag to photo.");
+            if (tag == null)
+                return BadRequest("Could not add tag to photo.");
             return Ok(tag);
         }
         catch (Exception ex)
@@ -271,9 +288,14 @@ public async Task<ActionResult> RejectPhoto(int photoId, [FromBody] PhotoRejecti
     {
         try
         {
-            _logger.LogDebug("AdminController - RemoveTagFromPhoto invoked (photoId: {photoId}, tagId: {tagId})", photoId, tagId);
+            _logger.LogDebug(
+                "AdminController - RemoveTagFromPhoto invoked (photoId: {photoId}, tagId: {tagId})",
+                photoId,
+                tagId
+            );
             var result = await adminService.RemoveTagFromPhotoAsync(photoId, tagId);
-            if (!result) return NotFound();
+            if (!result)
+                return NotFound();
             return Ok();
         }
         catch (Exception ex)
@@ -330,5 +352,4 @@ public async Task<ActionResult> RejectPhoto(int photoId, [FromBody] PhotoRejecti
             return StatusCode(500, "An error occurred while retrieving users without main photo.");
         }
     }
-
 }

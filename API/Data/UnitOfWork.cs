@@ -19,7 +19,8 @@ public class UnitOfWork : IUnitOfWork
         ILikesRepository likesRepository,
         IMessageRepository messageRepository,
         IPhotoRepository photoRepository,
-        ITagRepository tagRepository)
+        ITagRepository tagRepository
+    )
     {
         _context = context;
         UserRepository = userRepository;

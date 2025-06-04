@@ -14,14 +14,12 @@ public class PhotoService : IPhotoService
 
     public PhotoService(IOptions<CloudinarySettings> config, ILogger<PhotoService> logger)
     {
-
         _cloudinarySettings = config.Value;
         var acc = new Account(
             _cloudinarySettings.CloudName,
             _cloudinarySettings.ApiKey,
             _cloudinarySettings.ApiSecret
-
-            );
+        );
 
         _cloudinary = new Cloudinary(acc);
         _logger = logger;
@@ -35,7 +33,6 @@ public class PhotoService : IPhotoService
         }
         try
         {
-
             using var stream = file.OpenReadStream();
             var uploadParams = new ImageUploadParams
             {
@@ -45,25 +42,26 @@ public class PhotoService : IPhotoService
                     .Width(500)
                     .Crop("fill")
                     .Gravity("face"),
-                Folder = _cloudinarySettings.RootFolder
+                Folder = _cloudinarySettings.RootFolder,
             };
 
             var result = await _cloudinary.UploadAsync(uploadParams);
             if (result.StatusCode == HttpStatusCode.OK)
             {
-                _logger.LogInformation("Photo uploaded successfully: {FileName}, URL: {Url}", file.FileName, result.Url);
+                _logger.LogInformation(
+                    "Photo uploaded successfully: {FileName}, URL: {Url}",
+                    file.FileName,
+                    result.Url
+                );
             }
             return result;
-
         }
         catch (Exception ex)
         {
-
             _logger.LogError(ex, "Error occured while uploading photo to cloudinary");
             throw new InvalidOperationException("Error happened while uploading the phoot", ex);
         }
     }
-
 
     public async Task<DeletionResult> DeletePhotoAsync(string publicId)
     {
@@ -73,12 +71,14 @@ public class PhotoService : IPhotoService
         }
         try
         {
-
             var deleteParams = new DeletionParams(publicId);
             var result = await _cloudinary.DestroyAsync(deleteParams);
             if (result.StatusCode == HttpStatusCode.OK)
             {
-                _logger.LogInformation("Photo with public ID {PublicId} deleted successfully.", publicId);
+                _logger.LogInformation(
+                    "Photo with public ID {PublicId} deleted successfully.",
+                    publicId
+                );
             }
             return result;
         }

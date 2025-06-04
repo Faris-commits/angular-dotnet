@@ -1,9 +1,7 @@
-
 namespace API.DTOs;
 
 public class PhotoForApprovalDto
 {
-
     public int Id { get; set; }
 
     public required string Url { get; set; }
@@ -13,5 +11,4 @@ public class PhotoForApprovalDto
     public bool IsApproved { get; set; }
 
     public List<PhotoTagDto> Tags { get; set; }
-
 }

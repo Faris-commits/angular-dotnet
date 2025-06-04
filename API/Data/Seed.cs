@@ -7,9 +7,13 @@ namespace API.Data;
 
 public class Seed
 {
-    public static async Task SeedUsers(UserManager<AppUser> userManager, RoleManager<AppRole> roleManager)
+    public static async Task SeedUsers(
+        UserManager<AppUser> userManager,
+        RoleManager<AppRole> roleManager
+    )
     {
-        if (await userManager.Users.AnyAsync()) return;
+        if (await userManager.Users.AnyAsync())
+            return;
 
         var userData = await File.ReadAllTextAsync("Data/UserSeedData.json");
 
@@ -17,13 +21,14 @@ public class Seed
 
         var users = JsonSerializer.Deserialize<List<AppUser>>(userData, options);
 
-        if (users == null) return;
+        if (users == null)
+            return;
 
         var roles = new List<AppRole>
         {
-            new() {Name = "Member"},
-            new() {Name = "Admin"},
-            new() {Name = "Moderator"},
+            new() { Name = "Member" },
+            new() { Name = "Admin" },
+            new() { Name = "Moderator" },
         };
 
         foreach (var role in roles)
@@ -44,7 +49,7 @@ public class Seed
             KnownAs = "Admin",
             Gender = "",
             City = "",
-            Country = ""
+            Country = "",
         };
 
         await userManager.CreateAsync(admin, "Pa$$w0rd");
