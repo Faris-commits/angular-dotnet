@@ -53,34 +53,31 @@ export class PhotoEditorComponent implements OnInit {
     });
   }
 
-  
-
-deleteTag(tag: PhotoTagDto) {
-  this.memberService.deleteTag(tag.id).subscribe({
-    next: () => {
-      this.allTags = this.allTags.filter(t => t.id !== tag.id);
-      this.selectedTagIds = this.selectedTagIds.filter(id => id !== tag.id);
-      this.member().photos.forEach(photo => {
-        if (photo.tags) photo.tags = photo.tags.filter(t => t.id !== tag.id);
-      });
-    },
-    error: err => {
-     
-      console.error('Failed to delete tag', err);
-    }
-  });
-}
-
- onTagCheckboxChange(event: Event, tagId: number) {
-  const checked = (event.target as HTMLInputElement).checked;
-  if (checked) {
-    if (!this.selectedTagIds.includes(tagId)) {
-      this.selectedTagIds = [...this.selectedTagIds, tagId];
-    }
-  } else {
-    this.selectedTagIds = this.selectedTagIds.filter(id => id !== tagId);
+  deleteTag(tag: PhotoTagDto) {
+    this.memberService.deleteTag(tag.id).subscribe({
+      next: () => {
+        this.allTags = this.allTags.filter(t => t.id !== tag.id);
+        this.selectedTagIds = this.selectedTagIds.filter(id => id !== tag.id);
+        this.member().photos.forEach(photo => {
+          if (photo.tags) photo.tags = photo.tags.filter(t => t.id !== tag.id);
+        });
+      },
+      error: err => {
+        console.error('Failed to delete tag', err);
+      }
+    });
   }
-}
+
+  onTagCheckboxChange(event: Event, tagId: number) {
+    const checked = (event.target as HTMLInputElement).checked;
+    if (checked) {
+      if (!this.selectedTagIds.includes(tagId)) {
+        this.selectedTagIds = [...this.selectedTagIds, tagId];
+      }
+    } else {
+      this.selectedTagIds = this.selectedTagIds.filter(id => id !== tagId);
+    }
+  }
 
   fileOverBase(e: any) {
     this.hasBaseDropZoneOver = e;
@@ -123,27 +120,25 @@ deleteTag(tag: PhotoTagDto) {
       : 'None';
   }
 
- assignTagsToPhoto(photo: Photo) {
-  const existingTagIds = (photo.tags ?? []).map(t => t.id);
-
-  // Check for duplicates
-  const duplicateTags = this.selectedTagIds.filter(tagId => existingTagIds.includes(tagId));
-  if (duplicateTags.length > 0) {
-    alert('You cannot assign duplicate tags to the photo.');
-    return;
-  }
-
-  this.memberService.setPhotoTags(photo.id, this.selectedTagIds).subscribe({
-    next: () => {
-      const newTags = this.allTags.filter(tag => this.selectedTagIds.includes(tag.id) && !existingTagIds.includes(tag.id));
-      photo.tags = [...(photo.tags ?? []), ...newTags];
-      alert('Tags assigned successfully!');
-    },
-    error: err => {
-      console.error('Failed to assign tags', err);
+  assignTagsToPhoto(photo: Photo) {
+    const existingTagIds = (photo.tags ?? []).map(t => t.id);
+    const duplicateTags = this.selectedTagIds.filter(tagId => existingTagIds.includes(tagId));
+    if (duplicateTags.length > 0) {
+      alert('You cannot assign duplicate tags to the photo.');
+      return;
     }
-  });
-}
+
+    this.memberService.setPhotoTags(photo.id, this.selectedTagIds).subscribe({
+      next: () => {
+        const newTags = this.allTags.filter(tag => this.selectedTagIds.includes(tag.id) && !existingTagIds.includes(tag.id));
+        photo.tags = [...(photo.tags ?? []), ...newTags];
+        alert('Tags assigned successfully!');
+      },
+      error: err => {
+        console.error('Failed to assign tags', err);
+      }
+    });
+  }
 
   removeTagFromPhoto(photo: Photo, tag: PhotoTagDto) {
     const newTagIds = (photo.tags ?? []).filter(t => t.id !== tag.id).map(t => t.id);

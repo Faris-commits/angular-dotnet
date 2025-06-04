@@ -61,13 +61,15 @@ getPhotosForApproval() {
     });
   }
 
-  rejectPhoto(photoId: number) {
-    this.adminService.rejectPhoto(photoId).subscribe({
-      next: () => {
-        this.photos = this.photos.filter(photo => photo.id !== photoId);
-      }
-    });
-  }
+ rejectPhoto(photoId: number) {
+  const reason = prompt('Please enter a reason for rejection:');
+  if (!reason || !reason.trim()) return;
+  this.adminService.rejectPhoto(photoId, reason).subscribe({
+    next: () => {
+      this.photos = this.photos.filter(photo => photo.id !== photoId);
+    }
+  });
+}
 
   addTagToPhoto(photo: Photo, tagId: string) {
     const tagIdNum = +tagId;

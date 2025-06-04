@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Output, EventEmitter } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { PhotoTagSelectorComponent } from "../../photo-tags/photo-tag-selector/photo-tag-selector.component";
 
@@ -13,9 +13,11 @@ export class PhotoUploadComponent {
   selectedFile: File | null = null;
   selectedTagIds: number[] = [];
 
+  @Output() photoUploaded = new EventEmitter<any>();
+
   constructor(private http: HttpClient) {}
 
- onFileSelected(event: any) {
+  onFileSelected(event: any) {
     this.selectedFile = event.target.files[0];
   }
 
@@ -23,15 +25,13 @@ export class PhotoUploadComponent {
     if (!this.selectedFile) return;
     const formData = new FormData();
     formData.append('file', this.selectedFile);
+    formData.append('tagIds', JSON.stringify(this.selectedTagIds));
 
     this.http.post<any>('https://localhost:5001/api/users/add-photo', formData)
       .subscribe(photo => {
-        if (photo && photo.id && this.selectedTagIds.length > 0) {
-          this.http.post(
-            `https://localhost:5001/api/users/photos/${photo.id}/tags`,
-            this.selectedTagIds
-          ).subscribe();
-        }
+        this.photoUploaded.emit(photo);
+        this.selectedFile = null;
+        this.selectedTagIds = [];
       });
   }
 }

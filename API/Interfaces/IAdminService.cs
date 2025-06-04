@@ -5,7 +5,7 @@ namespace API.Interfaces;
 public interface IAdminService
 {
     Task<(bool Success, string Message)> ApprovePhotoAsync(int photoId);
-    Task<(bool Success, string Message)> RejectPhotoAsync(int photoId);
+    Task<(bool Success, string Message)> RejectPhotoAsync(int photoId, string reason);
     Task<IEnumerable<object>> GetUsersWithRolesAsync();
     Task<IEnumerable<PhotoTagDto>> GetPhotoTagsAsync();
     Task<PhotoTagDto> CreatePhotoTagAsync(string tagName);

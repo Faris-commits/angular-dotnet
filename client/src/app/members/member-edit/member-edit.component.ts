@@ -28,7 +28,7 @@ import { InputWrapperComponent } from "../../input-wrapper/input-wrapper/input-w
     DatePipe,
     TimeagoModule,
     InputWrapperComponent
-],
+  ],
 })
 export class MemberEditComponent implements OnInit {
   @ViewChild('editForm') editForm?: NgForm;

@@ -14,7 +14,6 @@
   <ng-container *ngFor="let photo of filteredPhotos; trackBy: trackByPhotoId">
     <div class="col-sm-2 mb-4">
       <h4>{{ photo.username }}</h4>
-      <!-- Assigned tags above the photo -->
       <div *ngIf="(photo.tags ?? []).length" class="mb-2">
         <span *ngFor="let tag of photo.tags ?? []" class="badge bg-info text-dark me-1">
           {{ tag.name }}

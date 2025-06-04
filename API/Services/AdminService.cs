@@ -14,65 +14,85 @@ public class AdminService : IAdminService
     private readonly ILogger<AdminService> _logger;
     private readonly IMapper _mapper;
     private readonly DataContext _context;
+    private readonly IMessageRepository _messageRepository;
 
-    public AdminService(IUnitOfWork unitOfWork, IPhotoService photoService, ILogger<AdminService> logger, IMapper mapper, DataContext context)
+    public AdminService(IUnitOfWork unitOfWork, IPhotoService photoService, ILogger<AdminService> logger, IMapper mapper, DataContext context, IMessageRepository messageRepository)
     {
         _unitOfWork = unitOfWork;
         _photoService = photoService;
         _logger = logger;
         _mapper = mapper;
         _context = context;
+        _messageRepository = messageRepository;
     }
 
-    public async Task<(bool Success, string Message)> ApprovePhotoAsync(int photoId)
+    public async Task ApprovePhotoAsync(int photoId)
+{
+    if (photoId <= 0)
+        throw new ArgumentException("Invalid photo ID.", nameof(photoId));
+
+    var photo = await _unitOfWork.PhotoRepository.GetPhotoById(photoId)
+        throw new KeyNotFoundException($"Photo with ID {photoId} not found.");
+
+    if (photo.IsApproved)
+        return; 
+
+    var user = await _unitOfWork.UserRepository.GetUserByPhotoId(photoId)
+         throw new KeyNotFoundException($"User associated with photo ID {photoId} not found.");
+
+    photo.IsApproved = true;
+
+    if (!user.Photos.Any(p => p.IsMain))
+        photo.IsMain = true;
+
+    var success = await _unitOfWork.Complete();
+    if (!success)
+        throw new InvalidOperationException("Failed to save changes while approving the photo.");
+}
+
+
+    public async Task RejectPhotoAsync(int photoId, string reason)
+{
+    if (photoId <= 0)
+        throw new ArgumentException("Invalid photo ID.", nameof(photoId));
+
+    if (string.IsNullOrWhiteSpace(reason))
+        throw new ArgumentException("Rejection reason is required.", nameof(reason));
+
+    var photo = await _unitOfWork.PhotoRepository.GetPhotoById(photoId)
+        ?? throw new KeyNotFoundException($"Photo with ID {photoId} not found.");
+
+    var user = await _unitOfWork.UserRepository.GetUserByPhotoId(photoId)
+        ?? throw new KeyNotFoundException($"User associated with photo ID {photoId} not found.");
+
+    if (!string.IsNullOrEmpty(photo.PublicId))
     {
-        var photo = await _unitOfWork.PhotoRepository.GetPhotoById(photoId);
-        if (photo == null) return (false, "Photo not found.");
-
-        photo.IsApproved = true;
-
-        var user = await _unitOfWork.UserRepository.GetUserByPhotoId(photoId);
-        if (user == null) return (false, "User not found.");
-
-        if (!user.Photos.Any(x => x.IsMain)) photo.IsMain = true;
-
-        var success = await _unitOfWork.Complete();
-        if (success)
-        {
-            _logger.LogInformation("Photo with ID {PhotoId} has been approved by the admin.", photoId);
-            return (true, "Photo approved successfully.");
-        }
-
-        return (false, "Failed to approve photo.");
+        var result = await _photoService.DeletePhotoAsync(photo.PublicId);
+        if (result.StatusCode != System.Net.HttpStatusCode.OK)
+            throw new InvalidOperationException("Failed to delete photo from external storage.");
     }
 
-    public async Task<(bool Success, string Message)> RejectPhotoAsync(int photoId)
+    _unitOfWork.PhotoRepository.RemovePhoto(photo);
+
+    var adminUser = await _context.Users.FirstOrDefaultAsync(u => u.UserName == "admin")
+        ?? throw new InvalidOperationException("Admin user not found.");
+
+    var message = new Message
     {
-        var photo = await _unitOfWork.PhotoRepository.GetPhotoById(photoId);
-        if (photo == null) return (false, "Photo not found.");
+        SenderId = adminUser.Id,
+        SenderUsername = adminUser.UserName,
+        RecipientId = user.Id,
+        RecipientUsername = user.UserName,
+        Content = $"Your photo was rejected by an admin. Reason: {reason}"
+    };
 
-        if (photo.PublicId != null)
-        {
-            var result = await _photoService.DeletePhotoAsync(photo.PublicId);
-            if (result.StatusCode == System.Net.HttpStatusCode.OK)
-            {
-                _unitOfWork.PhotoRepository.RemovePhoto(photo);
-            }
-        }
-        else
-        {
-            _unitOfWork.PhotoRepository.RemovePhoto(photo);
-        }
+    _messageRepository.AddMessage(message);
 
-        var success = await _unitOfWork.Complete();
-        if (success)
-        {
-            _logger.LogInformation("Photo with ID {PhotoId} has been rejected and deleted by the admin.", photoId);
-            return (true, "Photo rejected and deleted successfully.");
-        }
+    var success = await _unitOfWork.Complete();
+    if (!success)
+        throw new InvalidOperationException("Failed to save changes while rejecting the photo.");
+}
 
-        return (false, "Failed to reject photo.");
-    }
 
     public async Task<(bool Success, IEnumerable<string> Roles)> EditRolesAsync(string username, string roles)
     {

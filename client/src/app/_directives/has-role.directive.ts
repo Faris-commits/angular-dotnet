@@ -9,7 +9,7 @@ import {
 import { AccountService } from '../_services/account.service';
 
 @Directive({
-  selector: '[appHasRole]', // *appHasRole
+  selector: '[appHasRole]', 
   standalone: true,
 })
 export class HasRoleDirective implements OnInit {

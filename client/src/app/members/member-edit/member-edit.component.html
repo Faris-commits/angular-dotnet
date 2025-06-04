@@ -74,31 +74,17 @@
               [(ngModel)]="member.interests"
               rows="6">
             </textarea>
-
             <h4 class="mt-2">Location Details</h4>
             <div class="d-flex align-items-center">
-              <app-input-wrapper
-                name="city"
-                label="City: "
-                [(ngModel)]="member.city">
-              </app-input-wrapper>
-              <input
-                type="text"
-                [(ngModel)]="member.city"
-                class="form-control mx-2"
-                name="city" />
-              <label>Country: </label>
-              <app-input-wrapper
-                type="text"
-                name="country"
-                [(ngModel)]="member.country"></app-input-wrapper>
+              <app-input-wrapper></app-input-wrapper>
             </div>
           </form>
         </tab>
         <tab heading="Edit photos">
           <app-photo-editor
             [member]="member"
-            (memberChange)="onMemberChange($event)"></app-photo-editor>
+            (memberChange)="onMemberChange($event)">
+          </app-photo-editor>
         </tab>
       </tabset>
     </div>

@@ -33,9 +33,12 @@ export class AdminService {
     return this.http.post<void>(this.baseUrl + 'admin/approve-photo/' + photoId, {});
   }
 
-  rejectPhoto(photoId: number): Observable<void> {
-    return this.http.post<void>(this.baseUrl + 'admin/reject-photo/' + photoId, {});
-  }
+  rejectPhoto(photoId: number, reason: string) {
+  return this.http.post(
+    this.baseUrl + 'admin/reject-photo/' + photoId,
+    { reason }
+  );
+}
 
   getAllTags(): Observable<PhotoTagDto[]> {
     return this.http.get<PhotoTagDto[]>(this.baseUrl + 'admin/photo-tags');

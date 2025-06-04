@@ -127,33 +127,28 @@ public class AdminController(
             throw;
         }
     }
-    /// <summary>
-    /// POST /api/admin/reject-photo/{photoId}
-    /// </summary>
-    /// <param name="photoId"></param>
-    /// <returns></returns>
-    [Authorize(Policy = "ModeratePhotoRole")]
-    [HttpPost("reject-photo/{photoId}")]
-    [ProducesResponseType(typeof(ActionResult), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [ProducesErrorResponseType(typeof(void))]
-    public async Task<ActionResult> RejectPhoto(int photoId)
+/// <summary>
+/// POST /api/admin/reject-photo/{photoId}
+/// </summary>
+/// <param name="photoId"></param>
+/// <param name="dto"></param>
+/// <returns></returns>
+[Authorize(Policy = "ModeratePhotoRole")]
+[HttpPost("reject-photo/{photoId}")]
+public async Task<ActionResult> RejectPhoto(int photoId, [FromBody] PhotoRejectionDto dto)
+{
+    try
     {
-        try
-        {
-            _logger.LogDebug($"AdminController - {nameof(RejectPhoto)} invoked. (photoId: {photoId})");
-            await adminService.RejectPhotoAsync(photoId);
-            return Ok(photoId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Exception in AdminController-RejectPhoto");
-            throw;
-        }
+        _logger.LogDebug($"AdminController - {nameof(RejectPhoto)} invoked. (photoId: {photoId})");
+        await adminService.RejectPhotoAsync(photoId, dto.Reason);
+        return Ok(photoId);
     }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Exception in AdminController-RejectPhoto");
+        return StatusCode(500, "An error occurred while rejecting the photo .");
+    }
+}
 
     /// <summary>
     /// GET /api/admin/photo-tags
