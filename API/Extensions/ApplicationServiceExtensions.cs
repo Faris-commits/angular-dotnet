@@ -32,6 +32,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IMessageService, MessageService>();
         services.AddScoped<ITagRepository, TagRepository>();
         services.AddScoped<LogUserActivity>();
+        services.AddScoped<IMatchService, MatchService>();
         services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
         services.Configure<CloudinarySettings>(config.GetSection("CloudinarySettings"));
         services.AddSignalR();

@@ -1,6 +1,7 @@
 ﻿using API.Data;
 using API.DTOs;
 using API.Entities;
+using API.Extensions;
 using API.Helpers;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
@@ -144,5 +145,32 @@ public class UserRepository : IUserRepository
     public void Update(AppUser user)
     {
         context.Entry(user).State = EntityState.Modified;
+    }
+
+    public async Task<IEnumerable<MatchDto>> GetMatchesForUserAsync(int userId)
+    {
+        var user = await context
+            .Users.Include(u => u.Photos)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+            return Enumerable.Empty<MatchDto>();
+
+        var matches = await context
+            .Users.Include(u => u.Photos)
+            .Where(u =>
+                u.Id != userId && u.Gender == user.LookingFor && u.LookingFor == user.Gender
+            )
+            .Select(u => new MatchDto
+            {
+                Username = u.UserName,
+                Score = 0,
+                PhotoUrl = u.Photos.FirstOrDefault(p => p.IsMain).Url,
+                Age = u.DateOfBirth.CalculateAge(),
+                KnownAs = u.KnownAs,
+                City = u.City,
+            })
+            .ToListAsync();
+
+        return matches;
     }
 }

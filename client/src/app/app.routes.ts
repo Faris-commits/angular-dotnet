@@ -13,6 +13,7 @@ import { preventUnsavedChangesGuard } from './_guards/prevent-unsaved-changes.gu
 import { memberDetailedResolver } from './_resolvers/member-detailed.resolver';
 import { AdminPanelComponent } from './admin/admin-panel/admin-panel.component';
 import { adminGuard } from './_guards/admin.guard';
+import { MatchesComponent } from './matches/matches.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -39,6 +40,7 @@ export const routes: Routes = [
         component: AdminPanelComponent,
         canActivate: [adminGuard],
       },
+      { path: 'matches' , component: MatchesComponent },
     ],
   },
   { path: 'errors', component: TestErrorsComponent },

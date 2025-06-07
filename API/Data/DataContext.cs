@@ -26,6 +26,7 @@ public class DataContext(DbContextOptions options)
     public DbSet<PhotoTag> PhotoTags { get; set; }
     public DbSet<PhotoApprovalStats> PhotoApprovalStats { get; set; }
     public DbSet<UserWithoutMainPhotoDto> UsersWithoutMainPhoto { get; set; }
+    public DbSet<UserMatch> UserMatches { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -88,6 +89,20 @@ public class DataContext(DbContextOptions options)
             .HasOne(pt => pt.Tag)
             .WithMany(t => t.PhotoTags)
             .HasForeignKey(pt => pt.TagId);
+
+        builder
+            .Entity<UserMatch>()
+            .HasOne(m => m.SourceUser)
+            .WithMany()
+            .HasForeignKey(m => m.SourceUserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder
+            .Entity<UserMatch>()
+            .HasOne(m => m.TargetUser)
+            .WithMany()
+            .HasForeignKey(m => m.TargetUserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.Entity<Tag>().HasIndex(t => t.Name).IsUnique();
 

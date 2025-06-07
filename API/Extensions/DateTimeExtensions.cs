@@ -8,7 +8,8 @@ public static class DateTimeExtensions
 
         var age = today.Year - dob.Year;
 
-        if (dob > today.AddYears(-age)) age--;
+        if (dob > today.AddYears(-age))
+            age--;
 
         return age;
     }

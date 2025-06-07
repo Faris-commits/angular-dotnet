@@ -12,12 +12,14 @@ namespace API.Controllers;
 public class UsersController(
     IUsersService usersService,
     ILogger<UsersController> logger,
-    IUnitOfWork unitOfWork
+    IUnitOfWork unitOfWork,
+    IMatchService matchService
 ) : BaseApiController
 {
     private readonly IUsersService _usersService = usersService;
     private readonly ILogger<UsersController> _logger = logger;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
+    private readonly IMatchService _matchService = matchService;
 
     /// <summary>
     /// GET /api/users
@@ -367,5 +369,14 @@ public class UsersController(
             _logger.LogError(ex, "Exception in UsersController.DeleteTag");
             return StatusCode(500, "An error occurred while deleting the tag.");
         }
+    }
+
+    [Authorize]
+    [HttpGet("matches")]
+    public async Task<ActionResult<IEnumerable<MatchDto>>> GetMatches()
+    {
+        var userId = User.GetUserId();
+        var matches = await _matchService.GetMatchesForUserAsync(userId);
+        return Ok(matches);
     }
 }
