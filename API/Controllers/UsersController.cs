@@ -371,12 +371,32 @@ public class UsersController(
         }
     }
 
+    /// <summary>
+    /// GET /api/users/matches
+    /// </summary>
+    /// <param name="gender"></param>
+    /// <param name="city"></param>
+    /// <returns></returns>
     [Authorize]
     [HttpGet("matches")]
-    public async Task<ActionResult<IEnumerable<MatchDto>>> GetMatches()
+    [ProducesResponseType(typeof(IEnumerable<MatchDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<IEnumerable<MatchDto>>> GetMatches(
+        [FromQuery] string? gender = null,
+        [FromQuery] string? city = null
+    )
     {
-        var userId = User.GetUserId();
-        var matches = await _matchService.GetMatchesForUserAsync(userId);
-        return Ok(matches);
+        try
+        {
+            var userId = User.GetUserId();
+            var matches = await _matchService.GetMatchesForUserAsync(userId, gender, city);
+            return Ok(matches);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception in UsersController.GetMatches");
+            return StatusCode(500, "An error occurred while retrieving matches.");
+        }
     }
 }

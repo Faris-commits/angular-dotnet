@@ -147,24 +147,41 @@ public class UserRepository : IUserRepository
         context.Entry(user).State = EntityState.Modified;
     }
 
-    public async Task<IEnumerable<MatchDto>> GetMatchesForUserAsync(int userId)
+    public async Task<IEnumerable<MatchDto>> GetMatchesForUserAsync(
+        int userId,
+        string? gender = null,
+        string? city = null
+    )
     {
         var user = await context
             .Users.Include(u => u.Photos)
             .FirstOrDefaultAsync(u => u.Id == userId);
+
         if (user == null)
             return Enumerable.Empty<MatchDto>();
 
-        var matches = await context
-            .Users.Include(u => u.Photos)
-            .Where(u =>
-                u.Id != userId && u.Gender == user.LookingFor && u.LookingFor == user.Gender
-            )
+        var query = context.Users.Include(u => u.Photos).Where(u => u.Id != userId);
+
+        if (!string.IsNullOrEmpty(gender))
+        {
+            query = query.Where(u => u.Gender == gender);
+        }
+        else
+        {
+            query = query.Where(u => u.Gender == user.LookingFor && u.LookingFor == user.Gender);
+        }
+
+        if (!string.IsNullOrEmpty(city))
+        {
+            query = query.Where(u => u.City == city);
+        }
+
+        var matches = await query
             .Select(u => new MatchDto
             {
                 Username = u.UserName,
                 Score = 0,
-                PhotoUrl = u.Photos.FirstOrDefault(p => p.IsMain).Url,
+                PhotoUrl = u.Photos.Where(p => p.IsMain).Select(p => p.Url).FirstOrDefault(),
                 Age = u.DateOfBirth.CalculateAge(),
                 KnownAs = u.KnownAs,
                 City = u.City,

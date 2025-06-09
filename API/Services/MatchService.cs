@@ -10,8 +10,12 @@ public class MatchService : IMatchService
         _userRepository = userRepository;
     }
 
-    public async Task<IEnumerable<MatchDto>> GetMatchesForUserAsync(int userId)
+    public async Task<IEnumerable<MatchDto>> GetMatchesForUserAsync(
+        int userId,
+        string? gender = null,
+        string? city = null
+    )
     {
-        return await _userRepository.GetMatchesForUserAsync(userId);
+        return await _userRepository.GetMatchesForUserAsync(userId, gender, city);
     }
 }

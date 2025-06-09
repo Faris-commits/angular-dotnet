@@ -18,5 +18,9 @@ public interface IUserRepository
     Task<IEnumerable<string>> GetUserRolesAsync(AppUser user);
     Task<bool> AddToRolesAsync(AppUser user, IEnumerable<string> enumerable);
     Task<bool> RemoveFromRolesAsync(AppUser user, IEnumerable<string> enumerable);
-    Task<IEnumerable<MatchDto>> GetMatchesForUserAsync(int userId);
+    Task<IEnumerable<MatchDto>> GetMatchesForUserAsync(
+        int userId,
+        string? gender = null,
+        string? city = null
+    );
 }
