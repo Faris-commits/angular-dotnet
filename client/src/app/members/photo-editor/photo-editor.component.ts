@@ -9,6 +9,7 @@ import { MembersService } from '../../_services/members.service';
 import { PhotoTagSelectorComponent } from '../../photo-tags/photo-tag-selector/photo-tag-selector.component';
 import { PhotoTagDto } from '../../tags/tag.service';
 import { FormsModule } from '@angular/forms';
+import { AuthStoreService } from '../../_services/AuthStoreService';
 
 @Component({
   selector: 'app-photo-editor',
@@ -18,7 +19,7 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './photo-editor.component.css',
 })
 export class PhotoEditorComponent implements OnInit {
-  private accountService = inject(AccountService);
+  private authStore = inject(AuthStoreService)
   private memberService = inject(MembersService);
   
   member = input.required<Member>();
@@ -98,10 +99,10 @@ export class PhotoEditorComponent implements OnInit {
   setMainPhoto(photo: Photo) {
     this.memberService.setMainPhoto(photo).subscribe({
       next: _ => {
-        const user = this.accountService.currentUser();
+        const user = this.authStore.currentUserValue;
         if (user) {
           user.photoUrl = photo.url;
-          this.accountService.setCurrentUser(user);
+          this.authStore.setCurrentUser(user);
         }
         const updatedMember = { ...this.member() };
         updatedMember.photoUrl = photo.url;
@@ -152,9 +153,10 @@ export class PhotoEditorComponent implements OnInit {
   }
 
   initializeUploader() {
+    const user = this.authStore.currentUserValue;
     this.uploader = new FileUploader({
       url: this.baseUrl + 'users/add-photo',
-      authToken: 'Bearer ' + this.accountService.currentUser()?.token,
+      authToken: user ? 'Bearer ' + user.token : '',
       isHTML5: true,
       allowedFileType: ['image'],
       removeAfterUpload: true,
@@ -188,10 +190,10 @@ export class PhotoEditorComponent implements OnInit {
       }
 
       if (photo.isMain) {
-        const user = this.accountService.currentUser();
+        const user = this.authStore.currentUserValue;
         if (user) {
           user.photoUrl = photo.url;
-          this.accountService.setCurrentUser(user);
+          this.authStore.setCurrentUser(user);
         }
         updatedMember.photoUrl = photo.url;
         updatedMember.photos.forEach(p => {

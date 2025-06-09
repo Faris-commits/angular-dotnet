@@ -1,9 +1,9 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { NavComponent } from './nav/nav.component';
-import { AccountService } from './_services/account.service';
 import { HomeComponent } from './home/home.component';
 import { NgxSpinnerComponent } from 'ngx-spinner';
+import { AuthStoreService } from './_services/AuthStoreService';
 
 @Component({
   selector: 'app-root',
@@ -13,16 +13,12 @@ import { NgxSpinnerComponent } from 'ngx-spinner';
   imports: [RouterOutlet, NavComponent, HomeComponent, NgxSpinnerComponent],
 })
 export class AppComponent implements OnInit {
-  private accountService = inject(AccountService);
+  private authStore = inject(AuthStoreService);
 
   ngOnInit(): void {
-    this.setCurrentUser();
+   this.authStore.currentUser$.subscribe(user => {
+    console.log('Current user:', user);
+   });
   }
 
-  setCurrentUser() {
-    const userString = localStorage.getItem('user');
-    if (!userString) return;
-    const user = JSON.parse(userString);
-    this.accountService.setCurrentUser(user);
-  }
 }
