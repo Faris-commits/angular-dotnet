@@ -1,62 +1,77 @@
-﻿using System.Security.Cryptography;
-using System.Text;
-using API.Data;
-using API.DTOs;
-using API.Entities;
-using AutoMapper;
-using Microsoft.AspNetCore.Identity;
+﻿using API.DTOs;
+using API.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers;
 
-public class AccountController(UserManager<AppUser> userManager, ITokenService tokenService, 
-    IMapper mapper) : BaseApiController
+[ApiController]
+[Route("api/[controller]")]
+public class AccountController : ControllerBase
 {
-    [HttpPost("register")] // account/register
+
+    private readonly IAccountService _accountService;
+    private readonly ILogger<AccountController> _logger;
+
+    public AccountController(IAccountService accountService, ILogger<AccountController> logger)
+    {
+        _accountService = accountService;
+        _logger = logger;
+    }
+
+    /// <summary>
+    /// POST /api/account/register
+    /// </summary>
+    /// <param name="registerDto"></param>
+    /// <returns></returns>
+    [HttpPost("register")]
+    [ProducesResponseType(typeof(ActionResult<UserDto?>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesErrorResponseType(typeof(void))]
     public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
     {
-        if (await UserExists(registerDto.Username)) return BadRequest("Username is taken");
-
-        var user = mapper.Map<AppUser>(registerDto);
-
-        user.UserName = registerDto.Username.ToLower();
-
-        var result = await userManager.CreateAsync(user, registerDto.Password);
-
-        if (!result.Succeeded) return BadRequest(result.Errors);
-
-        return new UserDto
+        try
         {
-            Username = user.UserName,
-            Token = await tokenService.CreateToken(user),
-            KnownAs = user.KnownAs,
-            Gender = user.Gender
-        };
+            _logger.LogDebug($"AccountController - {nameof(Register)} invoked.(registerDto: {registerDto})");
+            var userDto = await _accountService.RegisterAsync(registerDto);
+            return Ok(userDto);
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception in AccountController.Register");
+            throw;
+        }
     }
 
+    /// <summary>
+    /// POST /api/account/login
+    /// </summary>
+    /// <param name="loginDto"></param>
+    /// <returns></returns>
     [HttpPost("login")]
+    [ProducesResponseType(typeof(ActionResult<UserDto?>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesErrorResponseType(typeof(void))]
     public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
     {
-        var user = await userManager.Users
-            .Include(p => p.Photos)
-                .FirstOrDefaultAsync(x =>
-                    x.NormalizedUserName == loginDto.Username.ToUpper());
-
-        if (user == null || user.UserName == null) return Unauthorized("Invalid username");
-
-        return new UserDto
+        try
         {
-            Username = user.UserName,
-            KnownAs = user.KnownAs,
-            Token = await tokenService.CreateToken(user),
-            Gender = user.Gender,
-            PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url
-        };
+            _logger.LogDebug($"AccontController - {nameof(Login)} invoked. (loginDto: {loginDto})");
+            var userDto = await _accountService.LoginAsync(loginDto);
+            return Ok(userDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception in AccountController.Login");
+            throw;
+
+        }
     }
 
-    private async Task<bool> UserExists(string username)
-    {
-        return await userManager.Users.AnyAsync(x => x.NormalizedUserName == username.ToUpper()); // Bob != bob
-    }
 }

@@ -21,8 +21,8 @@ public class LikesRepository(DataContext context, IMapper mapper) : ILikesReposi
 
     public async Task<IEnumerable<int>> GetCurrentUserLikeIds(int currentUserId)
     {
-        return await context.Likes
-            .Where(x => x.SourceUserId == currentUserId)
+        return await context
+            .Likes.Where(x => x.SourceUserId == currentUserId)
             .Select(x => x.TargetUserId)
             .ToListAsync();
     }
@@ -55,12 +55,18 @@ public class LikesRepository(DataContext context, IMapper mapper) : ILikesReposi
                 var likeIds = await GetCurrentUserLikeIds(likesParams.UserId);
 
                 query = likes
-                    .Where(x => x.TargetUserId == likesParams.UserId && likeIds.Contains(x.SourceUserId))
+                    .Where(x =>
+                        x.TargetUserId == likesParams.UserId && likeIds.Contains(x.SourceUserId)
+                    )
                     .Select(x => x.SourceUser)
                     .ProjectTo<MemberDto>(mapper.ConfigurationProvider);
                 break;
         }
 
-        return await PagedList<MemberDto>.CreateAsync(query, likesParams.PageNumber, likesParams.PageSize);
+        return await PagedList<MemberDto>.CreateAsync(
+            query,
+            likesParams.PageNumber,
+            likesParams.PageSize
+        );
     }
 }

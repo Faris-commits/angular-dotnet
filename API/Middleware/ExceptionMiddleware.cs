@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace API;
 
-public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger, 
+public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger,
     IHostEnvironment env)
 {
     public async Task InvokeAsync(HttpContext context)

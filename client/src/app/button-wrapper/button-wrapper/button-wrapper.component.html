@@ -1,0 +1,10 @@
+<button
+  [type]="type"
+  [class]="classStyle"
+  [name]="name"
+  [btnRadio]="btnRadio || null"
+  [(ngModel)]="model"
+  (ngModelChange)="onChange($event)"
+  (click)="onClick()">
+  {{ text }}
+</button>

@@ -1,1 +1,48 @@
-<p>photo-management works!</p>
+<div class="mb-3 d-flex align-items-center gap-2">
+  <label for="tagFilter" class="form-label mb-0">Filter by Tag:</label>
+<select id="tagFilter" class="form-select w-auto d-inline-block"
+        [ngModel]="selectedTagId"
+        (ngModelChange)="setFilterTag($event)">
+  <option [value]="null">All</option>
+  <option *ngFor="let tag of allTags" [value]="tag.id">{{ tag.name }}</option>
+</select>
+  <input [(ngModel)]="newTagName" placeholder="New tag name" class="form-control w-auto ms-3" />
+  <button class="btn btn-success" (click)="createTag()">Create Tag</button>
+</div>
+
+<div class="row">
+  <ng-container *ngFor="let photo of filteredPhotos; trackBy: trackByPhotoId">
+    <div class="col-sm-2 mb-4">
+      <h4>{{ photo.username }}</h4>
+      <div *ngIf="(photo.tags ?? []).length" class="mb-2">
+        <span *ngFor="let tag of photo.tags ?? []" class="badge bg-info text-dark me-1">
+          {{ tag.name }}
+          <button type="button" class="btn btn-sm btn-link p-0 ms-1 text-danger"
+                  (click)="removeTagFromPhoto(photo, tag.id)" title="Remove tag">&times;</button>
+        </span>
+      </div>
+      <img [src]="photo.url" class="img-thumbnail" [alt]="photo.username" />
+      <div class="mt-2">
+        <select class="form-select form-select-sm d-inline-block w-auto" #tagSelect>
+          <option *ngFor="let tag of allTags"
+                  [value]="tag.id"
+                  [disabled]="isTagAssigned(photo, tag.id)">
+            {{ tag.name }}
+          </option>
+        </select>
+        <button class="btn btn-sm btn-primary ms-1"
+                (click)="addTagToPhoto(photo, tagSelect.value)">
+          Add Tag
+        </button>
+      </div>
+      <div class="text-center mt-2">
+        <button class="btn btn-success approve-btn mb-1" (click)="approvePhoto(photo.id)">
+          <i class="fa fa-check me-1"></i> Approve
+        </button>
+        <button class="btn btn-danger reject-btn" (click)="rejectPhoto(photo.id)">
+          <i class="fa fa-times me-1"></i> Reject
+        </button>
+      </div>
+    </div>
+  </ng-container>
+</div>

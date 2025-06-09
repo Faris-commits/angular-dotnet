@@ -1,0 +1,36 @@
+img.img-thumbnail {
+  height: 150px;
+  width: 150px;
+}
+
+.approve-btn, .reject-btn {
+  width: 100%;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0.5rem 0;
+  border-radius: 0.4rem;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+.approve-btn {
+  background-color: #28a745;
+  border: none;
+  color: #fff;
+  transition: background 0.2s;
+}
+
+.approve-btn:hover {
+  background-color: #218838;
+}
+
+.reject-btn {
+  background-color: #dc3545;
+  border: none;
+  color: #fff;
+  transition: background 0.2s;
+}
+
+.reject-btn:hover {
+  background-color: #b52a37;
+}

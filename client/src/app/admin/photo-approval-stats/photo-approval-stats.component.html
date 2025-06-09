@@ -1,0 +1,46 @@
+<div *ngIf="loadingStats || loadingUsers" class="loading">Loading stats...</div>
+<div *ngIf="!loadingStats && photoApprovalStats.length > 0">
+  <h3>Photo Approval Stats</h3>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Approved Photos</th>
+        <th>Unapproved Photos</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let stat of photoApprovalStats">
+        <td>{{ stat.username }}</td>
+        <td>{{ stat.approvedPhotos }}</td>
+        <td>{{ stat.unapprovedPhotos }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div *ngIf="!loadingStats && photoApprovalStats.length === 0">
+  <p>No photo approval stats available.</p>
+</div>
+
+<div *ngIf="!loadingUsers && usersWithoutMainPhoto.length > 0">
+  <h3>Users Without Main Photo</h3>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Username</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of usersWithoutMainPhoto; let i = index">
+        <td>{{ i + 1 }}</td>
+        <td>{{ user }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div *ngIf="!loadingUsers && usersWithoutMainPhoto.length === 0">
+  <p>All users have a main photo.</p>
+</div>
