@@ -50,14 +50,7 @@ builder.Services.AddSwaggerGen(c =>
         }
     );
 });
-
-// builder.Host.UseSerilog((context, config) =>
-// {
-//     config.MinimumLevel.Information()
-//     .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
-//     .WriteTo.Debug(outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {Level:u3}] {Message:lj} {NewLine} {Exception}")
-//     .WriteTo.Console(outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {Level:u3}] {Message:lj} {NewLine} {Exception}");
-// });
+builder.Services.AddMemoryCache();
 builder.Host.UseSerilog((context, config) => config.ReadFrom.Configuration(context.Configuration));
 
 var app = builder.Build();
