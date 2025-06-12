@@ -39,13 +39,15 @@ public class AdminService : IAdminService
             throw new ArgumentException("Invalid photo ID.", nameof(photoId));
 
         var photo = await _unitOfWork.PhotoRepository.GetPhotoById(photoId);
-        throw new KeyNotFoundException($"Photo with ID {photoId} not found.");
+        if (photo == null)
+            throw new KeyNotFoundException($"Photo with ID {photoId} not found.");
 
         if (photo.IsApproved)
             return (true, "Photo already approved.");
 
         var user = await _unitOfWork.UserRepository.GetUserByPhotoId(photoId);
-        throw new KeyNotFoundException($"User associated with photo ID {photoId} not found.");
+        if (user == null)
+            throw new KeyNotFoundException($"User associated with photo ID {photoId} not found.");
 
         photo.IsApproved = true;
 
@@ -57,6 +59,8 @@ public class AdminService : IAdminService
             throw new InvalidOperationException(
                 "Failed to save changes while approving the photo."
             );
+
+        return (true, "Photo approved successfully.");
     }
 
     public async Task<(bool Success, string Message)> RejectPhotoAsync(int photoId, string reason)
