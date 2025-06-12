@@ -8,11 +8,13 @@ import { Photo } from '../_models/photo';
 export class PhotoFeedService {
   constructor(private http: HttpClient) {}
 
-  approvedPhotos$: Observable<Photo[]> = interval(10000).pipe(
-    startWith(0), 
-    switchMap(() => this.http.get<Photo[]>('https://localhost:5001/api/users/photos')),
-    map(photos => photos.filter(photo => photo.isApproved)),
-    distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
-    shareReplay(1)
-  );
+  getApprovedPhotos(): Observable<Photo[]> {
+    return interval(10000).pipe(
+      startWith(0),
+      switchMap(() => this.http.get<Photo[]>('https://localhost:5001/api/users/photos')),
+      map(photos => photos.filter(photo => photo.isApproved)), 
+      distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)), 
+      shareReplay(1) 
+    );
+  }
 }

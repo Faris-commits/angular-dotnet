@@ -1,6 +1,6 @@
 <h3 class="dashboard-title">Live Approved Photo Feed</h3>
 <div class="photo-feed">
-  <ng-container *ngIf="photoFeed.approvedPhotos$ | async as photos">
+  <ng-container *ngIf="photos$ | async as photos">
     <div *ngFor="let photo of photos" class="photo-card">
       <img [src]="photo.url" [alt]="photo.username" class="photo-img" />
       <div class="photo-info">

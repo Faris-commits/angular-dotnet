@@ -93,9 +93,10 @@ export class PhotoEditorComponent implements OnInit, OnChanges {
     this.filterTagIds$.next(values);
   }
 
-  setSelectedTagIds(tagIds: number[]) {
-    this.assignTagIds = tagIds;
-    this.assignTagIds$.next(tagIds);
+  // Added method for tag selector output binding
+  setSelectedTagIds(ids: number[]) {
+    this.assignTagIds = ids;
+    this.assignTagIds$.next(ids);
   }
 
   setApprovalStatusFromEvent(event: Event) {

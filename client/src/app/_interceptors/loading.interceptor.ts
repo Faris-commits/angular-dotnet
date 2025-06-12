@@ -6,11 +6,17 @@ import { finalize } from 'rxjs';
 export const loadingInterceptor: HttpInterceptorFn = (req, next) => {
   const loadingService = inject(LoadingService);
 
-  loadingService.setLoading(true);
+  const isPollingRequest = req.url.includes('/photos');
+
+  if (!isPollingRequest) {
+    loadingService.setLoading(true);
+  }
 
   return next(req).pipe(
     finalize(() => {
-      loadingService.setLoading(false);
+      if (!isPollingRequest) {
+        loadingService.setLoading(false);
+      }
     })
   );
 };
