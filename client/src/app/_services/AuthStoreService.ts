@@ -11,7 +11,7 @@ export class AuthStoreService {
 
   constructor() {
     const storedUser = localStorage.getItem('user');
-    const user = storedUser ? JSON.parse(storedUser) as User : null;
+    const user = storedUser ? this.decodeToken(storedUser) : null;
     this.currentUserSubject = new BehaviorSubject<User | null>(user);
     this.currentUser$ = this.currentUserSubject.asObservable();
   }
@@ -22,7 +22,7 @@ export class AuthStoreService {
 
   setCurrentUser(user: User): void {
     localStorage.setItem('user', JSON.stringify(user));
-    this.currentUserSubject.next(user);
+    this.currentUserSubject.next(this.decodeToken(user.token));
   }
 
   clearCurrentUser(): void {
@@ -37,4 +37,16 @@ export class AuthStoreService {
       });
     });
   }
+
+ private decodeToken(token: string): User {
+  const payload = JSON.parse(atob(token.split('.')[1]));
+  return {
+    username: payload.unique_name,
+    knownAs: payload.knownAs, 
+    photoUrl: payload.photoUrl,
+    token: token,
+    gender: payload.gender,
+    roles: payload.role, 
+  } as User;
+}
 }

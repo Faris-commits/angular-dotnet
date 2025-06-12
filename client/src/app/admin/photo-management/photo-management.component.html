@@ -1,18 +1,18 @@
+<h4>Photo Management</h4>
 <div class="mb-3 d-flex align-items-center gap-2">
-  <label for="tagFilter" class="form-label mb-0">Filter by Tag:</label>
-<select id="tagFilter" class="form-select w-auto d-inline-block"
-        [ngModel]="selectedTagId"
-        (ngModelChange)="setFilterTag($event)">
-  <option [value]="null">All</option>
-  <option *ngFor="let tag of allTags" [value]="tag.id">{{ tag.name }}</option>
-</select>
+  <select class="form-select w-auto d-inline-block ms-2"
+          (change)="setApprovalStatusFromEvent($event)">
+    <option value="">All</option>
+    <option value="true">Approved</option>
+    <option value="false">Unapproved</option>
+  </select>
   <input [(ngModel)]="newTagName" placeholder="New tag name" class="form-control w-auto ms-3" />
   <button class="btn btn-success" (click)="createTag()">Create Tag</button>
 </div>
 
 <div class="row">
-  <ng-container *ngFor="let photo of filteredPhotos; trackBy: trackByPhotoId">
-    <div class="col-sm-2 mb-4">
+  <ng-container *ngIf="filteredPhotos$ | async as photos">
+    <div *ngFor="let photo of photos; trackBy: trackByPhotoId" class="col-sm-2 mb-4">
       <h4>{{ photo.username }}</h4>
       <div *ngIf="(photo.tags ?? []).length" class="mb-2">
         <span *ngFor="let tag of photo.tags ?? []" class="badge bg-info text-dark me-1">
@@ -44,5 +44,6 @@
         </button>
       </div>
     </div>
+    <div *ngIf="!photos.length" class="text-center text-muted">No photos match your filters.</div>
   </ng-container>
 </div>

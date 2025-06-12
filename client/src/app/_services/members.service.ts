@@ -9,6 +9,7 @@ import { UserParams } from '../_models/userParams';
 import { setPaginatedResponse, setPaginationHeaders } from './paginationHelper';
 import { PhotoTagDto } from '../tags/tag.service';
 import { AuthStoreService } from '../_services/AuthStoreService';
+import { shareReplay } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -22,8 +23,16 @@ export class MembersService {
   user = this.authStore.currentUserValue;
   userParams = signal<UserParams>(new UserParams(this.user));
 
+  private currentUser$ = this.http.get<Member>(this.baseUrl + 'users/me').pipe(
+    shareReplay(1)
+  );
+
   resetUserParams() {
     this.userParams.set(new UserParams(this.user));
+  }
+
+  getCurrentUser(): Observable<Member> {
+    return this.currentUser$;
   }
 
   getMembers() {
