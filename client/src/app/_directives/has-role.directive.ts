@@ -6,7 +6,7 @@ import {
   ViewContainerRef,
   inject,
 } from '@angular/core';
-import { AccountService } from '../_services/account.service';
+import { AuthStoreService } from '../_services/AuthStoreService';
 
 @Directive({
   selector: '[appHasRole]', 
@@ -14,16 +14,13 @@ import { AccountService } from '../_services/account.service';
 })
 export class HasRoleDirective implements OnInit {
   @Input() appHasRole: string[] = [];
-  private accountService = inject(AccountService);
+  private authStore = inject(AuthStoreService)
   private viewContainerRef = inject(ViewContainerRef);
   private templateRef = inject(TemplateRef);
 
   ngOnInit(): void {
-    if (
-      this.accountService
-        .roles()
-        ?.some((r: string) => this.appHasRole.includes(r))
-    ) {
+    const roles = this.authStore.currentUserValue?.roles ?? [];
+    if (roles.some((r: string) => this.appHasRole.includes(r))) {
       this.viewContainerRef.createEmbeddedView(this.templateRef);
     } else {
       this.viewContainerRef.clear();

@@ -1,38 +1,112 @@
-import { Component, OnInit, inject, input, output } from '@angular/core';
-import { Member } from '../../_models/member';
-import { DecimalPipe, NgClass, NgFor, NgIf, NgStyle } from '@angular/common';
+import {
+  Component,
+  OnInit,
+  OnChanges,
+  SimpleChanges,
+  Input,
+  Output,
+  EventEmitter,
+  inject
+} from '@angular/core';
+import {
+  DecimalPipe,
+  NgClass,
+  NgFor,
+  NgIf,
+  NgStyle,
+  AsyncPipe,
+  CommonModule
+} from '@angular/common';
 import { FileUploadModule, FileUploader } from 'ng2-file-upload';
-import { AccountService } from '../../_services/account.service';
 import { environment } from '../../../environments/environment';
+import { Member } from '../../_models/member';
 import { Photo } from '../../_models/photo';
 import { MembersService } from '../../_services/members.service';
 import { PhotoTagSelectorComponent } from '../../photo-tags/photo-tag-selector/photo-tag-selector.component';
 import { PhotoTagDto } from '../../tags/tag.service';
 import { FormsModule } from '@angular/forms';
+import { AuthStoreService } from '../../_services/AuthStoreService';
+import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-photo-editor',
   standalone: true,
-  imports: [NgIf, NgFor, NgStyle, NgClass, FileUploadModule, DecimalPipe, PhotoTagSelectorComponent, FormsModule],
+  imports: [
+    NgIf, NgFor, NgStyle, NgClass, FileUploadModule, DecimalPipe,
+    PhotoTagSelectorComponent, FormsModule, AsyncPipe, CommonModule
+  ],
   templateUrl: './photo-editor.component.html',
-  styleUrl: './photo-editor.component.css',
+  styleUrls: ['./photo-editor.component.css'],
 })
-export class PhotoEditorComponent implements OnInit {
-  private accountService = inject(AccountService);
+export class PhotoEditorComponent implements OnInit, OnChanges {
+  private authStore = inject(AuthStoreService);
   private memberService = inject(MembersService);
-  
-  member = input.required<Member>();
+
+  @Input({ required: true }) member!: Member;
+  @Output() memberChange = new EventEmitter<Member>();
+
   uploader?: FileUploader;
   hasBaseDropZoneOver = false;
   baseUrl = environment.apiUrl;
-  memberChange = output<Member>();
-  selectedTagIds: number[] = [];
+
   allTags: PhotoTagDto[] = [];
-  newTagName = '';
+
+  assignTagIds: number[] = [];
+  filterTagIds: number[] = [];
+
+  assignTagIds$ = new BehaviorSubject<number[]>([]);
+  filterTagIds$ = new BehaviorSubject<number[]>([]);
+  approvalStatus$ = new BehaviorSubject<boolean | null>(null);
+  private photos$ = new BehaviorSubject<Photo[]>([]);
+
+  filteredPhotos$: Observable<Photo[]> = combineLatest([
+    this.photos$,
+    this.filterTagIds$,
+    this.approvalStatus$
+  ]).pipe(
+    map(([photos, tagIds, approval]) =>
+      photos.filter(photo => {
+        const matchesTags = tagIds.length === 0 || (photo.tags ?? []).some(tag => tagIds.includes(tag.id));
+        const matchesApproval = approval === null || photo.isApproved === approval;
+        return matchesTags && matchesApproval;
+      })
+    )
+  );
 
   ngOnInit(): void {
     this.loadTags();
     this.initializeUploader();
+    this.photos$.next(this.member.photos ?? []);
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['member'] && this.member) {
+      this.photos$.next(this.member.photos ?? []);
+    }
+  }
+
+  onFilterTagChange(event: Event) {
+    const select = event.target as HTMLSelectElement;
+    const values = Array.from(select.selectedOptions).map(option => +option.value);
+    this.filterTagIds = values;
+    this.filterTagIds$.next(values);
+  }
+
+  // Added method for tag selector output binding
+  setSelectedTagIds(ids: number[]) {
+    this.assignTagIds = ids;
+    this.assignTagIds$.next(ids);
+  }
+
+  setApprovalStatusFromEvent(event: Event) {
+    const select = event.target as HTMLSelectElement;
+    const value = select.value;
+    this.setApprovalStatus(value === '' ? null : value === 'true');
+  }
+
+  setApprovalStatus(status: boolean | null) {
+    this.approvalStatus$.next(status);
   }
 
   loadTags() {
@@ -41,101 +115,68 @@ export class PhotoEditorComponent implements OnInit {
     });
   }
 
-  addTag() {
-    const name = this.newTagName.trim();
-    if (!name) return;
-    this.memberService.createTag({ name }).subscribe({
-      next: tag => {
-        this.allTags.push(tag);
-        this.selectedTagIds.push(tag.id);
-        this.newTagName = '';
-      }
-    });
+  fileOverBase(e: any) {
+    this.hasBaseDropZoneOver = e;
   }
 
   deleteTag(tag: PhotoTagDto) {
     this.memberService.deleteTag(tag.id).subscribe({
       next: () => {
         this.allTags = this.allTags.filter(t => t.id !== tag.id);
-        this.selectedTagIds = this.selectedTagIds.filter(id => id !== tag.id);
-        this.member().photos.forEach(photo => {
+        this.assignTagIds = this.assignTagIds.filter(id => id !== tag.id);
+        this.filterTagIds = this.filterTagIds.filter(id => id !== tag.id);
+        this.assignTagIds$.next(this.assignTagIds);
+        this.filterTagIds$.next(this.filterTagIds);
+        this.member.photos.forEach(photo => {
           if (photo.tags) photo.tags = photo.tags.filter(t => t.id !== tag.id);
         });
-      },
-      error: err => {
-        console.error('Failed to delete tag', err);
       }
     });
-  }
-
-  onTagCheckboxChange(event: Event, tagId: number) {
-    const checked = (event.target as HTMLInputElement).checked;
-    if (checked) {
-      if (!this.selectedTagIds.includes(tagId)) {
-        this.selectedTagIds = [...this.selectedTagIds, tagId];
-      }
-    } else {
-      this.selectedTagIds = this.selectedTagIds.filter(id => id !== tagId);
-    }
-  }
-
-  fileOverBase(e: any) {
-    this.hasBaseDropZoneOver = e;
   }
 
   deletePhoto(photo: Photo) {
     this.memberService.deletePhoto(photo).subscribe({
       next: _ => {
-        const updatedMember = { ...this.member() };
-        updatedMember.photos = updatedMember.photos.filter(
-          x => x.id !== photo.id
-        );
+        const updatedMember = { ...this.member };
+        updatedMember.photos = updatedMember.photos.filter(x => x.id !== photo.id);
         this.memberChange.emit(updatedMember);
-      },
+      }
     });
   }
 
   setMainPhoto(photo: Photo) {
     this.memberService.setMainPhoto(photo).subscribe({
       next: _ => {
-        const user = this.accountService.currentUser();
+        const user = this.authStore.currentUserValue;
         if (user) {
           user.photoUrl = photo.url;
-          this.accountService.setCurrentUser(user);
+          this.authStore.setCurrentUser(user);
         }
-        const updatedMember = { ...this.member() };
+        const updatedMember = { ...this.member };
         updatedMember.photoUrl = photo.url;
         updatedMember.photos.forEach(p => {
-          if (p.isMain) p.isMain = false;
-          if (p.id === photo.id) p.isMain = true;
+          p.isMain = p.id === photo.id;
         });
         this.memberChange.emit(updatedMember);
-      },
+      }
     });
-  }
-
-  getTagNames(photo: Photo): string {
-    return photo.tags && photo.tags.length
-      ? photo.tags.map(t => t.name).join(', ')
-      : 'None';
   }
 
   assignTagsToPhoto(photo: Photo) {
     const existingTagIds = (photo.tags ?? []).map(t => t.id);
-    const duplicateTags = this.selectedTagIds.filter(tagId => existingTagIds.includes(tagId));
+    const duplicateTags = this.assignTagIds.filter(tagId => existingTagIds.includes(tagId));
     if (duplicateTags.length > 0) {
       alert('You cannot assign duplicate tags to the photo.');
       return;
     }
 
-    this.memberService.setPhotoTags(photo.id, this.selectedTagIds).subscribe({
+    this.memberService.setPhotoTags(photo.id, [...existingTagIds, ...this.assignTagIds]).subscribe({
       next: () => {
-        const newTags = this.allTags.filter(tag => this.selectedTagIds.includes(tag.id) && !existingTagIds.includes(tag.id));
+        const newTags = this.allTags.filter(tag =>
+          this.assignTagIds.includes(tag.id) && !existingTagIds.includes(tag.id)
+        );
         photo.tags = [...(photo.tags ?? []), ...newTags];
         alert('Tags assigned successfully!');
-      },
-      error: err => {
-        console.error('Failed to assign tags', err);
       }
     });
   }
@@ -148,13 +189,14 @@ export class PhotoEditorComponent implements OnInit {
   }
 
   getSelectedTagObjects() {
-    return this.allTags.filter(tag => this.selectedTagIds.includes(tag.id));
+    return this.allTags.filter(tag => this.assignTagIds.includes(tag.id));
   }
 
   initializeUploader() {
+    const user = this.authStore.currentUserValue;
     this.uploader = new FileUploader({
       url: this.baseUrl + 'users/add-photo',
-      authToken: 'Bearer ' + this.accountService.currentUser()?.token,
+      authToken: user ? 'Bearer ' + user.token : '',
       isHTML5: true,
       allowedFileType: ['image'],
       removeAfterUpload: true,
@@ -168,38 +210,47 @@ export class PhotoEditorComponent implements OnInit {
 
     this.uploader.onSuccessItem = (item, response, status, headers) => {
       const photo = JSON.parse(response);
-      const updatedMember = { ...this.member() };
+      const updatedMember = { ...this.member };
       updatedMember.photos.push(photo);
       this.memberChange.emit(updatedMember);
 
-      if (photo.id && this.selectedTagIds.length > 0) {
-        this.memberService.setPhotoTags(photo.id, this.selectedTagIds).subscribe({
+      if (photo.id && this.assignTagIds.length > 0) {
+        this.memberService.setPhotoTags(photo.id, this.assignTagIds).subscribe({
           next: () => {
             const addedPhoto = updatedMember.photos.find(p => p.id === photo.id);
             if (addedPhoto) {
               addedPhoto.tags = this.getSelectedTagObjects();
             }
             this.memberChange.emit(updatedMember);
-            this.selectedTagIds = [];
+            this.assignTagIds = [];
+            this.assignTagIds$.next([]);
           }
         });
       } else {
-        this.selectedTagIds = [];
+        this.assignTagIds = [];
+        this.assignTagIds$.next([]);
       }
 
       if (photo.isMain) {
-        const user = this.accountService.currentUser();
+        const user = this.authStore.currentUserValue;
         if (user) {
           user.photoUrl = photo.url;
-          this.accountService.setCurrentUser(user);
+          this.authStore.setCurrentUser(user);
         }
         updatedMember.photoUrl = photo.url;
         updatedMember.photos.forEach(p => {
-          if (p.isMain) p.isMain = false;
-          if (p.id === photo.id) p.isMain = true;
+          p.isMain = p.id === photo.id;
         });
         this.memberChange.emit(updatedMember);
       }
     };
+  }
+
+  get selectedTagIdsSafe(): number[] {
+    return this.assignTagIds$?.value ?? [];
+  }
+
+  get selectedTagIds(): number[] {
+    return this.assignTagIds;
   }
 }

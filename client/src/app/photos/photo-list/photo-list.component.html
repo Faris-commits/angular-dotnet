@@ -1,6 +1,10 @@
-<app-photo-tag-selector [(selectedTagIds)]="filterTagIds"></app-photo-tag-selector>
-<button (click)="filterPhotos()">Filter</button>
-<div *ngFor="let photo of photos">
+<app-photo-tag-selector [(selectedTagIds)]="filterTagIds" (selectedTagIdsChange)="onTagIdsChange($event)"></app-photo-tag-selector>
+<select class="form-select w-auto d-inline-block ms-2" (change)="onApprovalStatusChange($event)">
+  <option value="">All</option>
+  <option value="true">Approved</option>
+  <option value="false">Unapproved</option>
+</select>
+<div *ngFor="let photo of filteredPhotos$ | async">
   <img [src]="photo.url" width="100">
   <div>
     Tags: {{ getTagNames(photo) }}

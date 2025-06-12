@@ -8,7 +8,6 @@ namespace API.Controllers;
 [Route("api/[controller]")]
 public class AccountController : ControllerBase
 {
-
     private readonly IAccountService _accountService;
     private readonly ILogger<AccountController> _logger;
 
@@ -34,10 +33,11 @@ public class AccountController : ControllerBase
     {
         try
         {
-            _logger.LogDebug($"AccountController - {nameof(Register)} invoked.(registerDto: {registerDto})");
+            _logger.LogDebug(
+                $"AccountController - {nameof(Register)} invoked.(registerDto: {registerDto})"
+            );
             var userDto = await _accountService.RegisterAsync(registerDto);
             return Ok(userDto);
-
         }
         catch (Exception ex)
         {
@@ -70,8 +70,6 @@ public class AccountController : ControllerBase
         {
             _logger.LogError(ex, "Exception in AccountController.Login");
             throw;
-
         }
     }
-
 }

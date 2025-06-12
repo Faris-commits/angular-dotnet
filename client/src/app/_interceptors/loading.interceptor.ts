@@ -1,17 +1,22 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { BusyService } from '../_services/busy.service';
-import { delay, finalize } from 'rxjs';
+import { LoadingService } from '../_services/loading.service';
+import { finalize } from 'rxjs';
 
 export const loadingInterceptor: HttpInterceptorFn = (req, next) => {
-  const busyService = inject(BusyService);
+  const loadingService = inject(LoadingService);
 
-  busyService.busy();
+  const isPollingRequest = req.url.includes('/photos');
+
+  if (!isPollingRequest) {
+    loadingService.setLoading(true);
+  }
 
   return next(req).pipe(
-    delay(1000),
     finalize(() => {
-      busyService.idle();
+      if (!isPollingRequest) {
+        loadingService.setLoading(false);
+      }
     })
   );
 };

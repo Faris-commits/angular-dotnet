@@ -6,24 +6,33 @@ import { Observable, of } from 'rxjs';
 import { Photo } from '../_models/photo';
 import { PaginatedResult } from '../_models/pagination';
 import { UserParams } from '../_models/userParams';
-import { AccountService } from './account.service';
 import { setPaginatedResponse, setPaginationHeaders } from './paginationHelper';
 import { PhotoTagDto } from '../tags/tag.service';
+import { AuthStoreService } from '../_services/AuthStoreService';
+import { shareReplay } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
 })
 export class MembersService {
   private http = inject(HttpClient);
-  private accountService = inject(AccountService);
+  private authStore = inject(AuthStoreService);
   baseUrl = environment.apiUrl;
   paginatedResult = signal<PaginatedResult<Member[]> | null>(null);
   memberCache = new Map();
-  user = this.accountService.currentUser();
+  user = this.authStore.currentUserValue;
   userParams = signal<UserParams>(new UserParams(this.user));
+
+  private currentUser$ = this.http.get<Member>(this.baseUrl + 'users/me').pipe(
+    shareReplay(1)
+  );
 
   resetUserParams() {
     this.userParams.set(new UserParams(this.user));
+  }
+
+  getCurrentUser(): Observable<Member> {
+    return this.currentUser$;
   }
 
   getMembers() {
@@ -94,9 +103,7 @@ export class MembersService {
     return this.http.post<PhotoTagDto>(this.baseUrl + 'users/photo-tags', tag);
   }
 
- 
-
-deleteTag(tagId: number) {
-  return this.http.delete(this.baseUrl + 'users/tags/' + tagId);
-}
+  deleteTag(tagId: number) {
+    return this.http.delete(this.baseUrl + 'users/tags/' + tagId);
+  }
 }
