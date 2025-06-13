@@ -9,7 +9,7 @@ export class PhotoFeedService {
   constructor(private http: HttpClient) {}
 
   getApprovedPhotos(): Observable<Photo[]> {
-    return interval(10000).pipe(
+    return interval(3000).pipe(
       startWith(0),
       switchMap(() => this.http.get<Photo[]>('https://localhost:5001/api/users/photos')),
       map(photos => photos.filter(photo => photo.isApproved)), 

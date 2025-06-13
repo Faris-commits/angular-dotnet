@@ -4,7 +4,7 @@ import { AuthStoreService } from '../_services/AuthStoreService';
 
 export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   const authStore = inject(AuthStoreService);
-
+ debugger;
   const user = authStore.currentUserValue;
   if (user && user.token) {
     req = req.clone({

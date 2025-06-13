@@ -11,7 +11,8 @@ export class AuthStoreService {
 
   constructor() {
     const storedUser = localStorage.getItem('user');
-    const user = storedUser ? this.decodeToken(storedUser) : null;
+    const obj = JSON.parse(storedUser ??  '' );
+    const user = storedUser ? this.decodeToken(obj.token) : null;
     this.currentUserSubject = new BehaviorSubject<User | null>(user);
     this.currentUser$ = this.currentUserSubject.asObservable();
   }
@@ -38,6 +39,8 @@ export class AuthStoreService {
     });
   }
 
+
+  
  private decodeToken(token: string): User {
   const payload = JSON.parse(atob(token.split('.')[1]));
   return {
