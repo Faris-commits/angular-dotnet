@@ -258,5 +258,11 @@ namespace API.Services
             _logger.LogInformation("Tag with ID {TagId} deleted successfully.", tagId);
             return true;
         }
+
+        public async Task<IEnumerable<PhotoDto>> GetAllPhotosAsync()
+        {
+            var photos = await _unitOfWork.PhotoRepository.GetAllPhotosAsync();
+            return photos.Select(p => _mapper.Map<PhotoDto>(p));
+        }
     }
 }

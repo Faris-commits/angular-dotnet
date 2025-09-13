@@ -12,6 +12,7 @@ import { NgIf } from '@angular/common';
 import { TextInputComponent } from '../_forms/text-input/text-input.component';
 import { DatePickerComponent } from '../_forms/date-picker/date-picker.component';
 import { Router } from '@angular/router';
+import { AuthStoreService } from '../_services/AuthStoreService';
 
 @Component({
   selector: 'app-register',
@@ -22,6 +23,7 @@ import { Router } from '@angular/router';
 })
 export class RegisterComponent implements OnInit {
   private accountService = inject(AccountService);
+  private authStore = inject(AuthStoreService)
   private fb = inject(FormBuilder);
   private router = inject(Router);
   cancelRegister = output<boolean>();

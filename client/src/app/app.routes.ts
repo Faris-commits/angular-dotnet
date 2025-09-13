@@ -14,6 +14,8 @@ import { memberDetailedResolver } from './_resolvers/member-detailed.resolver';
 import { AdminPanelComponent } from './admin/admin-panel/admin-panel.component';
 import { adminGuard } from './_guards/admin.guard';
 import { MatchesComponent } from './matches/matches.component';
+import { PhotoListComponent } from './photos/photo-list/photo-list.component';
+import { DashboardComponent } from './dashboard/dashboard.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -40,6 +42,8 @@ export const routes: Routes = [
         component: AdminPanelComponent,
         canActivate: [adminGuard],
       },
+      { path: 'photos', component: PhotoListComponent },
+      { path: 'dashboard', component: DashboardComponent },
       { path: 'matches' , component: MatchesComponent },
     ],
   },

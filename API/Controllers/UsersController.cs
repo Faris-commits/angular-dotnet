@@ -389,14 +389,52 @@ public class UsersController(
     {
         try
         {
+            _logger.LogDebug(
+                $"UsersController - {nameof(GetMatches)} invoked. (gender: {gender}, city: {city})"
+            );
+
             var userId = User.GetUserId();
             var matches = await _matchService.GetMatchesForUserAsync(userId, gender, city);
+
+            if (matches == null || !matches.Any())
+            {
+                _logger.LogInformation("No matches found for user ID {UserId}.", userId);
+                return Ok(new List<MatchDto>());
+            }
+
+            _logger.LogInformation(
+                "{Count} matches retrieved for user ID {UserId}.",
+                matches.Count(),
+                userId
+            );
             return Ok(matches);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Exception in UsersController.GetMatches");
             return StatusCode(500, "An error occurred while retrieving matches.");
+        }
+    }
+
+    /// <summary>
+    /// GET /api/users/photos
+    /// </summary>
+    [HttpGet("photos")]
+    [ProducesResponseType(typeof(IEnumerable<PhotoDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<IEnumerable<PhotoDto>>> GetAllPhotos()
+    {
+        try
+        {
+            _logger.LogDebug("UsersController - GetAllPhotos invoked");
+            var photos = await _usersService.GetAllPhotosAsync();
+            return Ok(photos);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception in UsersController.GetAllPhotos");
+            return StatusCode(500, "An error occurred while retrieving photos.");
         }
     }
 }

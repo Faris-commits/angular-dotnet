@@ -35,6 +35,8 @@ public class TokenService(IConfiguration config, UserManager<AppUser> userManage
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Name, user.UserName),
+            new("knownAs", user.KnownAs ?? ""),
+            new("photoUrl", user.PhotoUrl ?? ""),
         };
 
         var roles = await userManager.GetRolesAsync(user);

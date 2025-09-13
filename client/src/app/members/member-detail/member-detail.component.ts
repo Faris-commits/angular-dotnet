@@ -6,10 +6,9 @@ import { GalleryItem, GalleryModule, ImageItem } from 'ng-gallery';
 import { TimeagoModule } from 'ngx-timeago';
 import { DatePipe } from '@angular/common';
 import { MemberMessagesComponent } from '../member-messages/member-messages.component';
-import { Message } from '../../_models/message';
 import { MessageService } from '../../_services/message.service';
 import { PresenceService } from '../../_services/presence.service';
-import { AccountService } from '../../_services/account.service';
+import { AuthStoreService } from '../../_services/AuthStoreService';
 import { HubConnectionState } from '@microsoft/signalr';
 
 @Component({
@@ -28,7 +27,7 @@ import { HubConnectionState } from '@microsoft/signalr';
 export class MemberDetailComponent implements OnInit, OnDestroy {
   @ViewChild('memberTabs', { static: true }) memberTabs?: TabsetComponent;
   private messageService = inject(MessageService);
-  private accountService = inject(AccountService);
+  private authStore = inject(AuthStoreService);
   private presenceService = inject(PresenceService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -70,7 +69,7 @@ export class MemberDetailComponent implements OnInit, OnDestroy {
   }
 
   onRouteParamsChange() {
-    const user = this.accountService.currentUser();
+    const user = this.authStore.currentUserValue;
     if (!user) return;
     if (
       this.messageService.hubConnection?.state ===
@@ -91,7 +90,7 @@ export class MemberDetailComponent implements OnInit, OnDestroy {
       queryParamsHandling: 'merge',
     });
     if (this.activeTab.heading === 'Messages' && this.member) {
-      const user = this.accountService.currentUser();
+      const user = this.authStore.currentUserValue;
       if (!user) return;
       this.messageService.createHubConnection(user, this.member.username);
     } else {

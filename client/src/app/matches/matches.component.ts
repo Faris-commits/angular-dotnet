@@ -37,8 +37,18 @@ export class MatchesComponent implements OnInit {
     if (this.filter.gender) params = params.set('gender', this.filter.gender);
     if (this.filter.city) params = params.set('city', this.filter.city);
 
-    this.http.get<Match[]>('/api/users/matches', { params }).subscribe({
-      next: matches => (this.matches = matches),
+    this.http.get<Match[]>('https://localhost:5001/api/users/matches', { params }).subscribe({
+      next: matches => {
+        this.matches = matches;
+        console.log('Matches:', this.matches);
+      },
+      error: err => {
+        console.error('Error fetching matches:', err);
+        if (err.error instanceof SyntaxError) {
+          console.error('Non-JSON response received:', err.error.text);
+        }
+        this.matches = [];
+      },
     });
   }
 }
